@@ -1,295 +1,102 @@
 <?php
+declare(strict_types=1);
+
+/**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
 
 namespace Phalcon\Test\Unit\Flash\Direct\Helper;
 
-use Phalcon\Test\Proxy\Flash\Direct;
-use Phalcon\Test\Module\UnitTest;
-use Phalcon\Di;
 use Phalcon\Escaper;
+use Phalcon\Flash\Direct;
+use UnitTester;
 
-/**
- * \Phalcon\Test\Unit\Flash\Direct\Helper\FlashBase
- * Tests the \Phalcon\Flash\Direct component
- *
- * @copyright (c) 2011-2016 Phalcon Team
- * @link      http://www.phalconphp.com
- * @author    Andres Gutierrez <andres@phalconphp.com>
- * @author    Nikolaos Dimopoulos <nikos@phalconphp.com>
- * @package   Phalcon\Test\Unit\Flash\Direct\Helper
- *
- * The contents of this file are subject to the New BSD License that is
- * bundled with this package in the file docs/LICENSE.txt
- *
- * If you did not receive a copy of the license and are unable to obtain it
- * through the world-wide-web, please send an email to license@phalconphp.com
- * so that we can send you a copy immediately.
- */
-class FlashBase extends UnitTest
+class FlashBase
 {
-    private $notImplicit = false;
-    private $notHtml     = false;
     private $classes     = null;
-    private $default     = [
+    private $notHtml     = false;
+    private $notImplicit = false;
+
+    private $default = [
         'success' => 'successMessage',
         'notice'  => 'noticeMessage',
         'warning' => 'warningMessage',
         'error'   => 'errorMessage',
     ];
 
-    /**
-     * Sets the custom classes for the tests
-     *
-     * @param $classes
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    protected function setClasses($classes)
+    public function _before(UnitTester $I)
     {
-        $this->classes = $classes;
-    }
-
-    /**
-     * Tests error (implicit flush)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectErrorImplicitFlushHtml()
-    {
-        $this->stringTest('error');
-    }
-
-    /**
-     * Tests success (implicit flush)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectSuccessImplicitFlushHtml()
-    {
-        $this->stringTest('success');
-    }
-
-    /**
-     * Tests notice (implicit flush)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectNoticeImplicitFlushHtml()
-    {
-        $this->stringTest('notice');
     }
 
     /**
      * Tests warning (implicit flush)
      *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
+     * @author Phalcon Team <team@phalcon.io>
      * @since  2014-10-04
      */
-    public function testFlashDirectWarningImplicitFlushHtml()
+    public function testFlashDirectImplicitFlushHtml(UnitTester $I)
     {
-        $this->stringTest('warning');
+        $functions = [
+            'error',
+            'success',
+            'notice',
+            'warning',
+        ];
+
+        foreach ($functions as $function) {
+            $this->stringTest($I, $function);
+        }
     }
 
     /**
-     * Tests error (no implicit flush)
+     * Tests a string with implicit flush Html
      *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
+     * @author Phalcon Team <team@phalcon.io>
      * @since  2014-10-04
      */
-    public function testFlashDirectErrorNoImplicitFlushHtml()
+    private function stringTest(UnitTester $I, string $function)
     {
-        $this->notImplicit = true;
-        $this->stringTest('error');
-        $this->notImplicit = false;
+        $flash = new Direct(new Escaper());
+        $flash->setCssClasses($this->classes);
+
+        $message = 'sample message';
+
+        if ($this->notHtml) {
+            $flash->setAutomaticHtml(false);
+
+            $expected = $message;
+        } else {
+            $expected = sprintf(
+                '<div%s>%s</div>' . PHP_EOL,
+                $this->getClass($function),
+                $message
+            );
+        }
+
+        if ($this->notImplicit) {
+            $flash->setImplicitFlush(false);
+
+            $actual = $flash->$function($message);
+        } else {
+            $actual = $this->getObResponse($flash, $function, $message);
+        }
+
+        $I->assertEquals($expected, $actual);
     }
 
     /**
-     * Tests success (no implicit flush)
+     * Private function to get the class of the message depending on the classes
+     * set
      *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
+     * @author Phalcon Team <team@phalcon.io>
      * @since  2014-10-04
      */
-    public function testFlashDirectSuccessNoImplicitFlushHtml()
-    {
-        $this->notImplicit = true;
-        $this->stringTest('success');
-        $this->notImplicit = false;
-    }
-
-    /**
-     * Tests notice (no implicit flush)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectNoticeNoImplicitFlushHtml()
-    {
-        $this->notImplicit = true;
-        $this->stringTest('notice');
-        $this->notImplicit = false;
-    }
-
-    /**
-     * Tests warning (no implicit flush)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectWarningNoImplicitFlushHtml()
-    {
-        $this->notImplicit = true;
-        $this->stringTest('warning');
-        $this->notImplicit = false;
-    }
-
-    /**
-     * Tests error (implicit flush no html)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectErrorImplicitFlushNoHtml()
-    {
-        $this->notHtml = true;
-        $this->stringTest('error');
-        $this->notHtml = false;
-    }
-
-    /**
-     * Tests success (implicit flush no html)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectSuccessImplicitFlushNoHtml()
-    {
-        $this->notHtml = true;
-        $this->stringTest('success');
-        $this->notHtml = false;
-    }
-
-    /**
-     * Tests notice (implicit flush no html)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectNoticeImplicitFlushNoHtml()
-    {
-        $this->notHtml = true;
-        $this->stringTest('notice');
-        $this->notHtml = false;
-    }
-
-    /**
-     * Tests warning (implicit flush no html)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectWarningImplicitFlushNoHtml()
-    {
-        $this->notHtml = true;
-        $this->stringTest('warning');
-        $this->notHtml = false;
-    }
-
-    /**
-     * Tests error (no implicit flush no html)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectErrorNoImplicitFlushNoHtml()
-    {
-        $this->notHtml     = true;
-        $this->notImplicit = true;
-        $this->stringTest('error');
-        $this->notHtml     = false;
-        $this->notImplicit = false;
-    }
-
-    /**
-     * Tests success (no implicit flush no html)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectSuccessNoImplicitFlushNoHtml()
-    {
-        $this->notHtml     = true;
-        $this->notImplicit = true;
-        $this->stringTest('success');
-        $this->notHtml     = false;
-        $this->notImplicit = false;
-    }
-
-    /**
-     * Tests notice (no implicit flush no html)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectNoticeNoImplicitFlushNoHtml()
-    {
-        $this->notHtml     = true;
-        $this->notImplicit = true;
-        $this->stringTest('notice');
-        $this->notHtml     = false;
-        $this->notImplicit = false;
-    }
-
-    /**
-     * Tests warning (no implicit flush no html)
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    public function testFlashDirectWarningNoImplicitFlushNoHtml()
-    {
-        $this->notHtml     = true;
-        $this->notImplicit = true;
-        $this->stringTest('warning');
-        $this->notHtml     = false;
-        $this->notImplicit = false;
-    }
-
-    /**
-     * Tests auto escaping
-     *
-     * @author Serghei Iakovlev <serghei@phalconphp.com>
-     * @issue  11448
-     * @since  2016-06-15
-     */
-    public function testFlashDirectWithAutoEscaping()
-    {
-        $flash = new Direct($this->classes);
-
-        $flash->setAutomaticHtml(false);
-        $flash->setImplicitFlush(false);
-
-        expect($flash->success("<h1>Hello World!</h1>"))->equals('&lt;h1&gt;Hello World!&lt;/h1&gt;');
-
-        $flash->setAutoescape(false);
-
-        expect($flash->success("<h1>Hello World!</h1>"))->equals('<h1>Hello World!</h1>');
-    }
-
-    /**
-     * Private function to get the class of the message depending on
-     * the classes set
-     *
-     * @param $key
-     *
-     * @return string
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
-     * @since  2014-10-04
-     */
-    private function getClass($key)
+    private function getClass($key): string
     {
         $template = ' class="%s"';
 
@@ -297,9 +104,9 @@ class FlashBase extends UnitTest
             $class = '';
         } else {
             $classes = (is_null($this->classes)) ?
-                        $this->default           :
-                        $this->classes;
-            $class = sprintf($template, $classes[$key]);
+                $this->default :
+                $this->classes;
+            $class   = sprintf($template, $classes[$key]);
         }
 
         return $class;
@@ -309,16 +116,10 @@ class FlashBase extends UnitTest
      * Private function to start the ob, call the function, get the
      * contents and clean the ob
      *
-     * @param $flash
-     * @param $function
-     * @param $message
-     *
-     * @return string
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
+     * @author Phalcon Team <team@phalcon.io>
      * @since  2014-10-04
      */
-    private function getObResponse($flash, $function, $message)
+    private function getObResponse($flash, $function, $message): string
     {
         ob_start();
         $flash->$function($message);
@@ -329,35 +130,115 @@ class FlashBase extends UnitTest
     }
 
     /**
-     * Private function that tests a string with implicit flush Html
+     * Tests warning (no implicit flush)
      *
-     * @param $function
-     *
-     * @author Nikolaos Dimopoulos <nikos@phalconphp.com>
+     * @author Phalcon Team <team@phalcon.io>
      * @since  2014-10-04
      */
-    private function stringTest($function)
+    public function testFlashDirectNoImplicitFlushHtml(UnitTester $I)
     {
-        $flash    = new Direct($this->classes);
-        $class    = $this->getClass($function);
-        $template = '<div%s>%s</div>' . PHP_EOL;
-        $message  = 'sample message';
+        $functions = [
+            'error',
+            'success',
+            'notice',
+            'warning',
+        ];
 
-        if ($this->notHtml) {
-            $flash->setAutomaticHtml(false);
-            $expected = $message;
-        } else {
-            $expected = sprintf($template, $class, $message);
+        foreach ($functions as $function) {
+            $this->notImplicit = true;
+
+            $this->stringTest($I, $function);
+
+            $this->notImplicit = false;
         }
+    }
 
+    /**
+     * Tests warning (implicit flush no html)
+     *
+     * @author Phalcon Team <team@phalcon.io>
+     * @since  2014-10-04
+     */
+    public function testFlashDirectImplicitFlushNoHtml(UnitTester $I)
+    {
+        $functions = [
+            'error',
+            'success',
+            'notice',
+            'warning',
+        ];
 
-        if ($this->notImplicit) {
-            $flash->setImplicitFlush(false);
-            $actual   = $flash->$function($message);
-        } else {
-            $actual = $this->getObResponse($flash, $function, $message);
+        foreach ($functions as $function) {
+            $this->notHtml = true;
+
+            $this->stringTest($I, $function);
+
+            $this->notHtml = false;
         }
+    }
 
-        expect($actual)->equals($expected);
+    /**
+     * Tests error (no implicit flush no html)
+     *
+     * @author Phalcon Team <team@phalcon.io>
+     * @since  2014-10-04
+     */
+    public function testFlashDirectNoImplicitFlushNoHtml(UnitTester $I)
+    {
+        $functions = [
+            'error',
+            'success',
+            'notice',
+            'warning',
+        ];
+
+        foreach ($functions as $function) {
+            $this->notHtml     = true;
+            $this->notImplicit = true;
+
+            $this->stringTest($I, $function);
+
+            $this->notHtml     = false;
+            $this->notImplicit = false;
+        }
+    }
+
+    /**
+     * Tests auto escaping
+     *
+     * @author Phalcon Team <team@phalcon.io>
+     * @issue  https://github.com/phalcon/cphalcon/issues/11448
+     * @since  2016-06-15
+     */
+    public function testFlashDirectWithAutoEscaping(UnitTester $I)
+    {
+        $flash = new Direct(new Escaper());
+        $flash->setCssClasses($this->classes);
+
+        $flash->setAutomaticHtml(false);
+        $flash->setImplicitFlush(false);
+
+        $I->assertEquals(
+            '&lt;h1&gt;Hello World!&lt;/h1&gt;',
+            $flash->success('<h1>Hello World!</h1>')
+        );
+
+        $flash->setAutoescape(false);
+
+        $I->assertEquals(
+            '<h1>Hello World!</h1>',
+            $flash->success('<h1>Hello World!</h1>')
+        );
+    }
+
+    /**
+     * Sets the custom classes for the tests
+     *
+     * @author Phalcon Team <team@phalcon.io>
+     * @since  2014-10-04
+     */
+    protected function setClasses($classes)
+    {
+        $this->classes = $classes;
     }
 }

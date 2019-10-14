@@ -15,8 +15,14 @@
 
 
 /**
- * Phalcon\Acl\Exception
+ * This file is part of the Phalcon Framework.
  *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Class for exceptions thrown by Phalcon\Acl
  */
 ZEPHIR_INIT_CLASS(Phalcon_Acl_Exception) {

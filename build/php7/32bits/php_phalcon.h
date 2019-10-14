@@ -13,7 +13,7 @@
   +------------------------------------------------------------------------+
   | Zephir Language                                                        |
   +------------------------------------------------------------------------+
-  | Copyright (c) 2011-2016 Zephir Team (http://www.zephir-lang.com)       |
+  | Copyright (c) 2011-2017 Zephir Team (http://www.zephir-lang.com)       |
   +------------------------------------------------------------------------+
   | This source file is subject to the New BSD License that is bundled     |
   | with this package in the file docs/LICENSE.txt.                        |
@@ -33,49 +33,14 @@
 
 #include <php.h>
 
-#define ZEPHIR_MAX_MEMORY_STACK 48
 #define ZEPHIR_MAX_CACHE_SLOTS 512
-
-/** Memory frame */
-typedef struct _zephir_memory_entry {
-	size_t pointer;
-	size_t capacity;
-	zval **addresses;
-	size_t hash_pointer;
-	size_t hash_capacity;
-	zval **hash_addresses;
-	struct _zephir_memory_entry *prev;
-	struct _zephir_memory_entry *next;
-#ifndef ZEPHIR_RELEASE
-	int permanent;
-	const char *func;
-#endif
-} zephir_memory_entry;
-
-/** Virtual Symbol Table */
-typedef struct _zephir_symbol_table {
-	struct _zephir_memory_entry *scope;
-	zend_array *symbol_table;
-	struct _zephir_symbol_table *prev;
-} zephir_symbol_table;
 
 typedef struct _zephir_function_cache {
 	zend_class_entry *ce;
 	zend_function *func;
 } zephir_function_cache;
 
-#ifndef ZEPHIR_RELEASE
-
-typedef struct _zephir_fcall_cache_entry {
-	zend_function *f;
-	uint times;
-} zephir_fcall_cache_entry;
-
-#else
-
 typedef zend_function zephir_fcall_cache_entry;
-
-#endif
 
 #define ZEPHIR_INIT_FUNCS(class_functions) static const zend_function_entry class_functions[] =
 
@@ -95,10 +60,6 @@ typedef zend_function zephir_fcall_cache_entry;
 	if (zephir_ ##name## _init(INIT_FUNC_ARGS_PASSTHRU) == FAILURE) { \
 		return FAILURE; \
 	}
-
-/** Macros for branch prediction */
-#define likely(x) EXPECTED(x)
-#define unlikely(x) UNEXPECTED(x)
 
 #if defined(__GNUC__) && (defined(__clang__) || ((__GNUC__ * 100 + __GNUC_MINOR__) >= 405))
 # define UNREACHABLE() __builtin_unreachable()
@@ -130,10 +91,6 @@ typedef zend_function zephir_fcall_cache_entry;
 # define __builtin_constant_p(s) (0)
 #endif
 
-#ifndef ZEND_MOD_END
-# define ZEND_MOD_END { NULL, NULL, NULL, 0 }
-#endif
-
 #ifndef __func__
 # define __func__ __FUNCTION__
 #endif
@@ -144,20 +101,17 @@ typedef zend_function zephir_fcall_cache_entry;
 # define ZEPHIR_NO_OPT
 #endif
 
-#ifdef ZTS
-#define zephir_nts_static
-#else
-#define zephir_nts_static
-#endif
+#define likely(x)   EXPECTED(x)
+#define unlikely(x) UNEXPECTED(x)
 
 #endif
 
 
 #define PHP_PHALCON_NAME        "phalcon"
-#define PHP_PHALCON_VERSION     "3.0.3"
+#define PHP_PHALCON_VERSION     "4.0.0-rc.1"
 #define PHP_PHALCON_EXTNAME     "phalcon"
 #define PHP_PHALCON_AUTHOR      "Phalcon Team and contributors"
-#define PHP_PHALCON_ZEPVERSION  "0.9.5a-dev"
+#define PHP_PHALCON_ZEPVERSION  "0.12.4-b386980"
 #define PHP_PHALCON_DESCRIPTION "Web framework delivered as a C-extension for PHP"
 
 typedef struct _zephir_struct_db { 
@@ -166,20 +120,26 @@ typedef struct _zephir_struct_db {
 } zephir_struct_db;
 
 typedef struct _zephir_struct_orm { 
-	HashTable*  parser_cache;
 	HashTable*  ast_cache;
 	int cache_level;
-	int unique_cache_id;
-	zend_bool events;
-	zend_bool virtual_foreign_keys;
-	zend_bool column_renaming;
-	zend_bool not_null_validations;
-	zend_bool exception_on_failed_save;
-	zend_bool enable_literals;
-	zend_bool late_state_binding;
-	zend_bool enable_implicit_joins;
+	zend_bool case_insensitive_column_map;
+	zend_bool cast_last_insert_id_to_int;
 	zend_bool cast_on_hydrate;
+	zend_bool column_renaming;
+	zend_bool disable_assign_setters;
+	zend_bool enable_implicit_joins;
+	zend_bool enable_literals;
+	zend_bool events;
+	zend_bool exception_on_failed_save;
+	zend_bool exception_on_failed_metadata_save;
 	zend_bool ignore_unknown_columns;
+	zend_bool late_state_binding;
+	zend_bool not_null_validations;
+	HashTable*  parser_cache;
+	int resultset_prefetch_records;
+	int unique_cache_id;
+	zend_bool update_snapshot_on_save;
+	zend_bool virtual_foreign_keys;
 } zephir_struct_orm;
 
 
@@ -187,14 +147,6 @@ typedef struct _zephir_struct_orm {
 ZEND_BEGIN_MODULE_GLOBALS(phalcon)
 
 	int initialized;
-
-	/* Memory */
-	zephir_memory_entry *start_memory; /**< The first preallocated frame */
-	zephir_memory_entry *end_memory; /**< The last preallocate frame */
-	zephir_memory_entry *active_memory; /**< The current memory frame */
-
-	/* Virtual Symbol Tables */
-	zephir_symbol_table *active_symbol_table;
 
 	/** Function cache */
 	HashTable *fcache;

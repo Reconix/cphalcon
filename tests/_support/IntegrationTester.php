@@ -1,5 +1,7 @@
 <?php
 
+use Codeception\Actor;
+use Codeception\Lib\Friend;
 
 /**
  * Inherited Methods
@@ -12,15 +14,50 @@
  * @method void am($role)
  * @method void lookForwardTo($achieveValue)
  * @method void comment($description)
- * @method \Codeception\Lib\Friend haveFriend($name, $actorClass = NULL)
+ * @method Friend haveFriend($name, $actorClass = null)
  *
  * @SuppressWarnings(PHPMD)
-*/
-class IntegrationTester extends \Codeception\Actor
+ */
+class IntegrationTester extends Actor
 {
     use _generated\IntegrationTesterActions;
 
-   /**
-    * Define custom actions here
-    */
+    /**
+     * Define custom actions here
+     */
+
+    /**
+     * Get file name from path
+     *
+     * @param string $path
+     * @param string $separator
+     */
+    public function preparePathToFileWithDelimiter($path, $separator): string
+    {
+        $virtual_str = '';
+
+        if (!is_string($path) || !is_string($separator)) {
+            if (is_string($path)) {
+                return $path;
+            } else {
+                return '';
+            }
+        }
+
+        for ($i = 0; $i < strlen($path); $i++) {
+            $ch = $path[$i];
+
+            if ($ch == '\0') {
+                break;
+            }
+
+            if ($ch == '/' || $ch == '\\' || $ch == ':') {
+                $virtual_str .= $separator;
+            } else {
+                $virtual_str .= strtolower($ch);
+            }
+        }
+
+        return $virtual_str;
+    }
 }

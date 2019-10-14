@@ -16,17 +16,25 @@
 #include "kernel/memory.h"
 #include "kernel/operators.h"
 #include "kernel/array.h"
-#include "ext/spl/spl_exceptions.h"
-#include "kernel/exception.h"
+#include "kernel/object.h"
 
 
 /**
- * Phalcon\Validation\Validator\Identical
+ * This file is part of the Phalcon Framework.
  *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Checks if a value is identical to other
  *
- * <code>
+ * ```php
+ * use Phalcon\Validation;
  * use Phalcon\Validation\Validator\Identical;
+ *
+ * $validator = new Validation();
  *
  * $validator->add(
  *     "terms",
@@ -56,11 +64,13 @@
  *         ]
  *     )
  * );
- * </code>
+ * ```
  */
 ZEPHIR_INIT_CLASS(Phalcon_Validation_Validator_Identical) {
 
-	ZEPHIR_REGISTER_CLASS_EX(Phalcon\\Validation\\Validator, Identical, phalcon, validation_validator_identical, phalcon_validation_validator_ce, phalcon_validation_validator_identical_method_entry, 0);
+	ZEPHIR_REGISTER_CLASS_EX(Phalcon\\Validation\\Validator, Identical, phalcon, validation_validator_identical, phalcon_validation_abstractvalidator_ce, phalcon_validation_validator_identical_method_entry, 0);
+
+	zend_declare_property_string(phalcon_validation_validator_identical_ce, SL("template"), "Field :field does not have the expected value", ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	return SUCCESS;
 
@@ -72,114 +82,60 @@ ZEPHIR_INIT_CLASS(Phalcon_Validation_Validator_Identical) {
 PHP_METHOD(Phalcon_Validation_Validator_Identical, validate) {
 
 	zend_bool valid = 0;
-	int ZEPHIR_LAST_CALL_STATUS;
-	zval *field = NULL;
-	zval *validation, *field_param = NULL, *message = NULL, *label = NULL, *replacePairs = NULL, *value = NULL, *accepted = NULL, *valueOption = NULL, *code = NULL, *_0 = NULL, *_1, *_2$$3, *_3$$4, *_4$$5 = NULL, *_5$$5, *_6$$6, *_7$$7, *_8$$8 = NULL, *_13$$8 = NULL, *_14$$8, *_9$$9, *_10$$11, *_11$$12, *_12$$13;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval *validation, validation_sub, *field, field_sub, value, accepted, _0, _1, _2, _3$$3, _4$$4, _5$$6, _6$$7;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&validation_sub);
+	ZVAL_UNDEF(&field_sub);
+	ZVAL_UNDEF(&value);
+	ZVAL_UNDEF(&accepted);
+	ZVAL_UNDEF(&_0);
+	ZVAL_UNDEF(&_1);
+	ZVAL_UNDEF(&_2);
+	ZVAL_UNDEF(&_3$$3);
+	ZVAL_UNDEF(&_4$$4);
+	ZVAL_UNDEF(&_5$$6);
+	ZVAL_UNDEF(&_6$$7);
 
 	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 2, 0, &validation, &field_param);
+	zephir_fetch_params(1, 2, 0, &validation, &field);
 
-	if (unlikely(Z_TYPE_P(field_param) != IS_STRING && Z_TYPE_P(field_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'field' must be a string") TSRMLS_CC);
-		RETURN_MM_NULL();
-	}
-	if (likely(Z_TYPE_P(field_param) == IS_STRING)) {
-		zephir_get_strval(field, field_param);
-	} else {
-		ZEPHIR_INIT_VAR(field);
-		ZVAL_EMPTY_STRING(field);
-	}
 
 
 	ZEPHIR_CALL_METHOD(&value, validation, "getvalue", NULL, 0, field);
 	zephir_check_call_status();
-	ZEPHIR_INIT_VAR(_1);
-	ZVAL_STRING(_1, "accepted", ZEPHIR_TEMP_PARAM_COPY);
-	ZEPHIR_CALL_METHOD(&_0, this_ptr, "hasoption", NULL, 0, _1);
-	zephir_check_temp_parameter(_1);
+	ZEPHIR_INIT_VAR(&_1);
+	ZVAL_STRING(&_1, "accepted");
+	ZEPHIR_CALL_METHOD(&_0, this_ptr, "hasoption", NULL, 0, &_1);
 	zephir_check_call_status();
-	if (zephir_is_true(_0)) {
-		ZEPHIR_INIT_VAR(_2$$3);
-		ZVAL_STRING(_2$$3, "accepted", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(&accepted, this_ptr, "getoption", NULL, 0, _2$$3);
-		zephir_check_temp_parameter(_2$$3);
+	ZEPHIR_INIT_NVAR(&_1);
+	ZVAL_STRING(&_1, "value");
+	ZEPHIR_CALL_METHOD(&_2, this_ptr, "hasoption", NULL, 0, &_1);
+	zephir_check_call_status();
+	if (zephir_is_true(&_0)) {
+		ZEPHIR_INIT_VAR(&_3$$3);
+		ZVAL_STRING(&_3$$3, "accepted");
+		ZEPHIR_CALL_METHOD(&accepted, this_ptr, "getoption", NULL, 0, &_3$$3);
 		zephir_check_call_status();
-		if (Z_TYPE_P(accepted) == IS_ARRAY) {
-			zephir_array_fetch(&_3$$4, accepted, field, PH_NOISY | PH_READONLY, "phalcon/validation/validator/identical.zep", 79 TSRMLS_CC);
-			ZEPHIR_CPY_WRT(accepted, _3$$4);
-		}
-		valid = ZEPHIR_IS_EQUAL(value, accepted);
-	} else {
-		ZEPHIR_INIT_VAR(_5$$5);
-		ZVAL_STRING(_5$$5, "value", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(&_4$$5, this_ptr, "hasoption", NULL, 0, _5$$5);
-		zephir_check_temp_parameter(_5$$5);
+	} else if (zephir_is_true(&_2)) {
+		ZEPHIR_INIT_VAR(&_4$$4);
+		ZVAL_STRING(&_4$$4, "value");
+		ZEPHIR_CALL_METHOD(&accepted, this_ptr, "getoption", NULL, 0, &_4$$4);
 		zephir_check_call_status();
-		if (zephir_is_true(_4$$5)) {
-			ZEPHIR_INIT_VAR(_6$$6);
-			ZVAL_STRING(_6$$6, "value", ZEPHIR_TEMP_PARAM_COPY);
-			ZEPHIR_CALL_METHOD(&valueOption, this_ptr, "getoption", NULL, 0, _6$$6);
-			zephir_check_temp_parameter(_6$$6);
-			zephir_check_call_status();
-			if (Z_TYPE_P(valueOption) == IS_ARRAY) {
-				zephir_array_fetch(&_7$$7, valueOption, field, PH_NOISY | PH_READONLY, "phalcon/validation/validator/identical.zep", 86 TSRMLS_CC);
-				ZEPHIR_CPY_WRT(valueOption, _7$$7);
-			}
-			valid = ZEPHIR_IS_EQUAL(value, valueOption);
+	}
+	if (zephir_is_true(&accepted)) {
+		if (Z_TYPE_P(&accepted) == IS_ARRAY) {
+			zephir_array_fetch(&_5$$6, &accepted, field, PH_NOISY | PH_READONLY, "phalcon/Validation/Validator/Identical.zep", 78 TSRMLS_CC);
+			ZEPHIR_CPY_WRT(&accepted, &_5$$6);
 		}
+		valid = ZEPHIR_IS_EQUAL(&value, &accepted);
 	}
 	if (!(valid)) {
-		ZEPHIR_INIT_VAR(_8$$8);
-		ZVAL_STRING(_8$$8, "label", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(&label, this_ptr, "getoption", NULL, 0, _8$$8);
-		zephir_check_temp_parameter(_8$$8);
+		ZEPHIR_CALL_METHOD(&_6$$7, this_ptr, "messagefactory", NULL, 0, validation, field);
 		zephir_check_call_status();
-		if (Z_TYPE_P(label) == IS_ARRAY) {
-			zephir_array_fetch(&_9$$9, label, field, PH_NOISY | PH_READONLY, "phalcon/validation/validator/identical.zep", 96 TSRMLS_CC);
-			ZEPHIR_CPY_WRT(label, _9$$9);
-		}
-		if (ZEPHIR_IS_EMPTY(label)) {
-			ZEPHIR_CALL_METHOD(&label, validation, "getlabel", NULL, 0, field);
-			zephir_check_call_status();
-		}
-		ZEPHIR_INIT_NVAR(_8$$8);
-		ZVAL_STRING(_8$$8, "message", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(&message, this_ptr, "getoption", NULL, 0, _8$$8);
-		zephir_check_temp_parameter(_8$$8);
-		zephir_check_call_status();
-		if (Z_TYPE_P(message) == IS_ARRAY) {
-			zephir_array_fetch(&_10$$11, message, field, PH_NOISY | PH_READONLY, "phalcon/validation/validator/identical.zep", 104 TSRMLS_CC);
-			ZEPHIR_CPY_WRT(message, _10$$11);
-		}
-		ZEPHIR_INIT_VAR(replacePairs);
-		zephir_create_array(replacePairs, 1, 0 TSRMLS_CC);
-		zephir_array_update_string(&replacePairs, SL(":field"), &label, PH_COPY | PH_SEPARATE);
-		if (ZEPHIR_IS_EMPTY(message)) {
-			ZEPHIR_INIT_VAR(_11$$12);
-			ZVAL_STRING(_11$$12, "Identical", ZEPHIR_TEMP_PARAM_COPY);
-			ZEPHIR_CALL_METHOD(&message, validation, "getdefaultmessage", NULL, 0, _11$$12);
-			zephir_check_temp_parameter(_11$$12);
-			zephir_check_call_status();
-		}
-		ZEPHIR_INIT_NVAR(_8$$8);
-		ZVAL_STRING(_8$$8, "code", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(&code, this_ptr, "getoption", NULL, 0, _8$$8);
-		zephir_check_temp_parameter(_8$$8);
-		zephir_check_call_status();
-		if (Z_TYPE_P(code) == IS_ARRAY) {
-			zephir_array_fetch(&_12$$13, code, field, PH_NOISY | PH_READONLY, "phalcon/validation/validator/identical.zep", 113 TSRMLS_CC);
-			ZEPHIR_CPY_WRT(code, _12$$13);
-		}
-		ZEPHIR_INIT_NVAR(_8$$8);
-		object_init_ex(_8$$8, phalcon_validation_message_ce);
-		ZEPHIR_CALL_FUNCTION(&_13$$8, "strtr", NULL, 26, message, replacePairs);
-		zephir_check_call_status();
-		ZEPHIR_INIT_VAR(_14$$8);
-		ZVAL_STRING(_14$$8, "Identical", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(NULL, _8$$8, "__construct", NULL, 466, _13$$8, field, _14$$8, code);
-		zephir_check_temp_parameter(_14$$8);
-		zephir_check_call_status();
-		ZEPHIR_CALL_METHOD(NULL, validation, "appendmessage", NULL, 0, _8$$8);
+		ZEPHIR_CALL_METHOD(NULL, validation, "appendmessage", NULL, 0, &_6$$7);
 		zephir_check_call_status();
 		RETURN_MM_BOOL(0);
 	}

@@ -13,6 +13,14 @@
 
 
 /**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Phalcon\Mvc\Model\Transaction\ManagerInterface
  *
  * Interface for Phalcon\Mvc\Model\Transaction\Manager
@@ -26,19 +34,9 @@ ZEPHIR_INIT_CLASS(Phalcon_Mvc_Model_Transaction_ManagerInterface) {
 }
 
 /**
- * Checks whether manager has an active transaction
+ * Remove all the transactions from the manager
  */
-ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, has);
-
-/**
- * Returns a new \Phalcon\Mvc\Model\Transaction or an already created once
- */
-ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, get);
-
-/**
- * Rollbacks active transactions within the manager
- */
-ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, rollbackPendent);
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, collectTransactions);
 
 /**
  * Commits active transactions within the manager
@@ -46,17 +44,24 @@ ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, rollbackPenden
 ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, commit);
 
 /**
- * Rollbacks active transactions within the manager
- * Collect will remove transaction from the manager
- *
- * @param boolean collect
+ * Returns a new \Phalcon\Mvc\Model\Transaction or an already created once
  */
-ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, rollback);
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, get);
 
 /**
- * Notifies the manager about a rollbacked transaction
+ * Returns the database service used to isolate the transaction
  */
-ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, notifyRollback);
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, getDbService);
+
+/**
+ * Check if the transaction manager is registering a shutdown function to clean up pendent transactions
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, getRollbackPendent);
+
+/**
+ * Checks whether manager has an active transaction
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, has);
 
 /**
  * Notifies the manager about a committed transaction
@@ -64,7 +69,28 @@ ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, notifyRollback
 ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, notifyCommit);
 
 /**
- * Remove all the transactions from the manager
+ * Notifies the manager about a rollbacked transaction
  */
-ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, collectTransactions);
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, notifyRollback);
+
+/**
+ * Rollbacks active transactions within the manager
+ * Collect will remove transaction from the manager
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, rollback);
+
+/**
+ * Rollbacks active transactions within the manager
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, rollbackPendent);
+
+/**
+ * Sets the database service used to run the isolated transactions
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, setDbService);
+
+/**
+ * Set if the transaction manager must register a shutdown function to clean up pendent transactions
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Transaction_ManagerInterface, setRollbackPendent);
 

@@ -15,10 +15,17 @@
 
 
 /**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Phalcon\Tag\Exception
  *
  * Exceptions thrown in Phalcon\Tag will use this class
- *
  */
 ZEPHIR_INIT_CLASS(Phalcon_Tag_Exception) {
 

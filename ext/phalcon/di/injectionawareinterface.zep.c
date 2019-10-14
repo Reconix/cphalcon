@@ -13,9 +13,16 @@
 
 
 /**
- * Phalcon\Di\InjectionAwareInterface
+ * This file is part of the Phalcon Framework.
  *
- * This interface must be implemented in those classes that uses internally the Phalcon\Di that creates them
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
+ * This interface must be implemented in those classes that uses internally the
+ * Phalcon\Di that creates them
  */
 ZEPHIR_INIT_CLASS(Phalcon_Di_InjectionAwareInterface) {
 

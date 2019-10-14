@@ -12,9 +12,8 @@
 #include <Zend/zend_interfaces.h>
 
 #include "kernel/main.h"
-#include "kernel/memory.h"
-#include "kernel/array.h"
 #include "kernel/object.h"
+#include "kernel/memory.h"
 
 
 ZEPHIR_INIT_CLASS(phalcon_0__closure) {
@@ -27,23 +26,22 @@ ZEPHIR_INIT_CLASS(phalcon_0__closure) {
 
 PHP_METHOD(phalcon_0__closure, __invoke) {
 
-	zend_bool _1;
-	zval *element, *_0, *_2;
+	zval *error, error_sub, __$true, __$false;
+	zval *this_ptr = getThis();
 
-	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 1, 0, &element);
+	ZVAL_UNDEF(&error_sub);
+	ZVAL_BOOL(&__$true, 1);
+	ZVAL_BOOL(&__$false, 0);
+
+	zephir_fetch_params_without_memory_grow(1, 0, &error);
 
 
 
-	ZEPHIR_OBS_VAR(_0);
-	zephir_array_fetch_long(&_0, element, 0, PH_NOISY, "phalcon/validation.zep", 62 TSRMLS_CC);
-	_1 = Z_TYPE_P(_0) != IS_ARRAY;
-	if (!(_1)) {
-		ZEPHIR_OBS_VAR(_2);
-		zephir_array_fetch_long(&_2, element, 1, PH_NOISY, "phalcon/validation.zep", 62 TSRMLS_CC);
-		_1 = !(zephir_is_instance_of(_2, SL("phalcon\\CombinedFieldsValidator") TSRMLS_CC));
+	if (1) {
+		zephir_update_property_zval(this_ptr, SL("warning"), &__$true);
+	} else {
+		zephir_update_property_zval(this_ptr, SL("warning"), &__$false);
 	}
-	RETURN_MM_BOOL(_1);
 
 }
 

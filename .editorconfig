@@ -1,21 +1,26 @@
 # EditorConfig is awesome: http://EditorConfig.org
 
 # top-most EditorConfig file
-root = true
-charset = utf-8
-trim_trailing_whitespace = true
+root                     = true
 
 [*]
-end_of_line = lf
-insert_final_newline = true
-indent_style = space
-indent_size = 4
+end_of_line              = lf
+insert_final_newline     = true
+indent_style             = space
+indent_size              = 4
+charset                  = utf-8
+trim_trailing_whitespace = true
 
 [Makefile]
-indent_style = tab
+indent_style             = tab
+tab_width                = 4
 
-[*.sh]
-indent_style = tab
+[*.{mk,c,h,awk,bat,frag,lemon,re}]
+indent_style             = tab
+tab_width                = 4
 
-[*.zep]
-indent_style = tab
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{yml,m4,json,xml,sh}]
+indent_size              = 2

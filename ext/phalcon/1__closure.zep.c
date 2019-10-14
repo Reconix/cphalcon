@@ -13,7 +13,6 @@
 
 #include "kernel/main.h"
 #include "kernel/memory.h"
-#include "kernel/array.h"
 #include "kernel/object.h"
 
 
@@ -27,23 +26,21 @@ ZEPHIR_INIT_CLASS(phalcon_1__closure) {
 
 PHP_METHOD(phalcon_1__closure, __invoke) {
 
-	zend_bool _1;
-	zval *element, *_0, *_2;
+	zend_bool _0;
+	zval *element, element_sub;
+	zval *this_ptr = getThis();
 
-	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 1, 0, &element);
+	ZVAL_UNDEF(&element_sub);
+
+	zephir_fetch_params_without_memory_grow(1, 0, &element);
 
 
 
-	ZEPHIR_OBS_VAR(_0);
-	zephir_array_fetch_long(&_0, element, 0, PH_NOISY, "phalcon/validation.zep", 65 TSRMLS_CC);
-	_1 = Z_TYPE_P(_0) == IS_ARRAY;
-	if (_1) {
-		ZEPHIR_OBS_VAR(_2);
-		zephir_array_fetch_long(&_2, element, 1, PH_NOISY, "phalcon/validation.zep", 65 TSRMLS_CC);
-		_1 = zephir_is_instance_of(_2, SL("phalcon\\CombinedFieldsValidator") TSRMLS_CC);
+	_0 = Z_TYPE_P(element) == IS_LONG;
+	if (!(_0)) {
+		_0 = Z_TYPE_P(element) == IS_STRING;
 	}
-	RETURN_MM_BOOL(_1);
+	RETURN_BOOL(_0);
 
 }
 

@@ -1,64 +1,251 @@
 <?php
+
 /**
- * Phalcon Framework
+ * This file is part of the Phalcon Framework.
  *
- * @copyright (c) 2011-2016 Phalcon Team
- * @link      https://www.phalconphp.com
- * @author    Andres Gutierrez <andres@phalconphp.com>
- * @author    Serghei Iakovlev <serghei@phalconphp.com>
+ * (c) Phalcon Team <team@phalcon.io>
  *
- * The contents of this file are subject to the New BSD License that is
- * bundled with this package in the file docs/LICENSE.txt
- *
- * If you did not receive a copy of the license and are unable to obtain it
- * through the world-wide-web, please send an email to license@phalconphp.com
- * so that we can send you a copy immediately.
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
  */
 
-if (!function_exists('xcache_get') && function_exists('apc_fetch')) {
-    function xcache_get($key)
-    {
-        $ok = false;
-        $result = apc_fetch($key, $ok);
-
-        return $ok ? $result : null;
-    }
-
-    function xcache_inc($key, $step = 1)
-    {
-        $ok = false;
-        $result = apc_inc($key, $step, $ok);
-
-        return $ok ? $result : false;
-    }
-
-    function xcache_set($key, $value, $ttl = 0)
-    {
-        return apc_store($key, $value, $ttl);
-    }
-
-    function xcache_isset($key)
-    {
-        return apc_exists($key);
-    }
-
-    function xcache_unset($key)
-    {
-        return apc_delete($key);
-    }
-
-    function xcache_emulation()
-    {
-    }
-}
+use Dotenv\Dotenv;
 
 if (!function_exists('env')) {
-    function env($key, $default = null)
+    function env(string $key, $default = null)
     {
         if (defined($key)) {
             return constant($key);
         }
 
         return getenv($key) ?: $default;
+    }
+}
+
+/**
+ * Calls .env and merges the global and local configurations
+ */
+if (!function_exists('loadEnvironment')) {
+    function loadEnvironment(string $root)
+    {
+        /**
+         * Load local environment if it exists
+         */
+        (new Dotenv($root, 'tests/_ci/.env.default'))->load();
+
+        /**
+         * Necessary evil. We need to set some constants for INI files to work
+         */
+        defineFromEnv('DATA_MYSQL_CHARSET');
+        defineFromEnv('DATA_MYSQL_HOST');
+        defineFromEnv('DATA_MYSQL_NAME');
+        defineFromEnv('DATA_MYSQL_PASS');
+        defineFromEnv('DATA_MYSQL_PORT');
+        defineFromEnv('DATA_MYSQL_USER');
+        defineFromEnv('PATH_CACHE');
+        defineFromEnv('PATH_DATA');
+        defineFromEnv('PATH_OUTPUT');
+    }
+}
+
+if (!function_exists('defineFromEnv')) {
+    function defineFromEnv(string $name)
+    {
+        if (defined($name)) {
+            return;
+        }
+
+        define(
+            $name,
+            env($name)
+        );
+    }
+}
+
+/**
+ * Ensures that certain folders are always ready for us.
+ */
+if (!function_exists('loadFolders')) {
+    function loadFolders()
+    {
+        $folders = [
+            'annotations',
+            'assets',
+            'cache',
+            'cache/models',
+            'image',
+            'image/gd',
+            'image/imagick',
+            'logs',
+            'session',
+            'stream',
+        ];
+
+        foreach ($folders as $folder) {
+            $item = outputDir('tests/' . $folder);
+
+            if (true !== file_exists($item)) {
+                mkdir($item, 0777, true);
+            }
+        }
+    }
+}
+
+/**
+ * Returns the cache folder
+ */
+if (!function_exists('cacheDir')) {
+    function cacheDir(string $fileName = ''): string
+    {
+        return codecept_output_dir() . 'tests/cache/' . $fileName;
+    }
+}
+
+/**
+ * Returns the output folder
+ */
+if (!function_exists('dataDir')) {
+    function dataDir(string $fileName = ''): string
+    {
+        return codecept_data_dir() . $fileName;
+    }
+}
+
+/**
+ * Returns the output folder
+ */
+if (!function_exists('logsDir')) {
+    function logsDir(string $fileName = ''): string
+    {
+        return codecept_output_dir() . 'tests/logs/' . $fileName;
+    }
+}
+
+/**
+ * Returns the output folder
+ */
+if (!function_exists('outputDir')) {
+    function outputDir(string $fileName = ''): string
+    {
+        return codecept_output_dir() . $fileName;
+    }
+}
+
+/**
+ * Returns the output folder
+ */
+if (!function_exists('cacheModelsDir')) {
+    function cacheModelsDir(string $fileName = ''): string
+    {
+        return codecept_output_dir() . 'tests/cache/models/' . $fileName;
+    }
+}
+
+/*******************************************************************************
+ * Options
+ *******************************************************************************/
+if (!function_exists('getOptionsLibmemcached')) {
+    function getOptionsLibmemcached(): array
+    {
+        return [
+            'client'  => [],
+            'servers' => [
+                [
+                    'host'   => env('DATA_MEMCACHED_HOST', '127.0.0.1'),
+                    'port'   => env('DATA_MEMCACHED_PORT', 11211),
+                    'weight' => env('DATA_MEMCACHED_WEIGHT', 0),
+                ],
+            ],
+        ];
+    }
+}
+
+if (!function_exists('getOptionsRedis')) {
+    function getOptionsRedis(): array
+    {
+        return [
+            'host'  => env('DATA_REDIS_HOST'),
+            'port'  => env('DATA_REDIS_PORT'),
+            'index' => env('DATA_REDIS_NAME'),
+        ];
+    }
+}
+
+if (!function_exists('getOptionsSessionStream')) {
+    /**
+     * Get Session Stream options
+     */
+    function getOptionsSessionStream(): array
+    {
+        if (!is_dir(cacheDir('sessions'))) {
+            mkdir(cacheDir('sessions'));
+        }
+
+        return [
+            'savePath' => cacheDir('sessions'),
+        ];
+    }
+}
+
+if (!function_exists('getOptionsModelCacheStream')) {
+    /**
+     * Get Model cache options - Stream
+     */
+    function getOptionsModelCacheStream(): array
+    {
+        if (!is_dir(cacheDir('models'))) {
+            mkdir(
+                cacheDir('models')
+            );
+        }
+
+        return [
+            'lifetime' => 3600,
+            'cacheDir' => cacheModelsDir(),
+        ];
+    }
+}
+
+if (!function_exists('getOptionsMysql')) {
+    /**
+     * Get mysql db options
+     */
+    function getOptionsMysql(): array
+    {
+        return [
+            'host'     => env('DATA_MYSQL_HOST'),
+            'username' => env('DATA_MYSQL_USER'),
+            'password' => env('DATA_MYSQL_PASS'),
+            'dbname'   => env('DATA_MYSQL_NAME'),
+            'charset'  => env('DATA_MYSQL_CHARSET'),
+        ];
+    }
+}
+
+if (!function_exists('getOptionsPostgresql')) {
+    /**
+     * Get postgresql db options
+     */
+    function getOptionsPostgresql(): array
+    {
+        return [
+            'host'     => env('DATA_POSTGRES_HOST'),
+            'username' => env('DATA_POSTGRES_USER'),
+            'password' => env('DATA_POSTGRES_PASS'),
+            'dbname'   => env('DATA_POSTGRES_NAME'),
+            'schema'   => env('DATA_POSTGRES_SCHEMA'),
+        ];
+    }
+}
+
+if (!function_exists('getOptionsSqlite')) {
+    /**
+     * Get sqlite db options
+     */
+    function getOptionsSqlite(): array
+    {
+        return [
+            'dbname' => env('DATA_SQLITE_NAME'),
+        ];
     }
 }

@@ -16,11 +16,18 @@
 #include "kernel/exception.h"
 #include "kernel/operators.h"
 #include "kernel/memory.h"
+#include "kernel/object.h"
 
 
 /**
- * Phalcon\Assets\Filters\None
+ * This file is part of the Phalcon Framework.
  *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Returns the content without make any modification to the original source
  */
 ZEPHIR_INIT_CLASS(Phalcon_Assets_Filters_None) {
@@ -33,29 +40,33 @@ ZEPHIR_INIT_CLASS(Phalcon_Assets_Filters_None) {
 }
 
 /**
- * Returns the content without be touched
+ * Returns the content as is
  */
 PHP_METHOD(Phalcon_Assets_Filters_None, filter) {
 
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
 	zval *content_param = NULL;
-	zval *content = NULL;
+	zval content;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&content);
 
 	ZEPHIR_MM_GROW();
 	zephir_fetch_params(1, 1, 0, &content_param);
 
-	if (unlikely(Z_TYPE_P(content_param) != IS_STRING && Z_TYPE_P(content_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'content' must be a string") TSRMLS_CC);
+	if (UNEXPECTED(Z_TYPE_P(content_param) != IS_STRING && Z_TYPE_P(content_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'content' must be of the type string") TSRMLS_CC);
 		RETURN_MM_NULL();
 	}
-	if (likely(Z_TYPE_P(content_param) == IS_STRING)) {
-		zephir_get_strval(content, content_param);
+	if (EXPECTED(Z_TYPE_P(content_param) == IS_STRING)) {
+		zephir_get_strval(&content, content_param);
 	} else {
-		ZEPHIR_INIT_VAR(content);
-		ZVAL_EMPTY_STRING(content);
+		ZEPHIR_INIT_VAR(&content);
+		ZVAL_EMPTY_STRING(&content);
 	}
 
 
-	RETURN_CTOR(content);
+	RETURN_CTOR(&content);
 
 }
 

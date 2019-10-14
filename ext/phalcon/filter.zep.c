@@ -12,121 +12,258 @@
 #include <Zend/zend_interfaces.h>
 
 #include "kernel/main.h"
+#include "kernel/fcall.h"
+#include "kernel/memory.h"
+#include "ext/spl/spl_exceptions.h"
 #include "kernel/exception.h"
 #include "kernel/object.h"
-#include "ext/spl/spl_exceptions.h"
-#include "kernel/operators.h"
-#include "kernel/memory.h"
-#include "kernel/hash.h"
-#include "kernel/fcall.h"
 #include "kernel/array.h"
-#include "Zend/zend_closures.h"
-#include "kernel/string.h"
 #include "kernel/concat.h"
+#include "Zend/zend_closures.h"
+#include "kernel/operators.h"
 
 
 /**
- * Phalcon\Filter
+ * This file is part of the Phalcon Framework.
  *
- * The Phalcon\Filter component provides a set of commonly needed data filters. It provides
- * object oriented wrappers to the php filter extension. Also allows the developer to
- * define his/her own filters
+ * (c) Phalcon Team <team@phalcon.io>
  *
- *<code>
- * $filter = new \Phalcon\Filter();
- *
- * $filter->sanitize("some(one)@exa\\mple.com", "email"); // returns "someone@example.com"
- * $filter->sanitize("hello<<", "string"); // returns "hello"
- * $filter->sanitize("!100a019", "int"); // returns "100019"
- * $filter->sanitize("!100a019.01a", "float"); // returns "100019.01"
- *</code>
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
+ * Lazy loads, stores and exposes sanitizer objects
  */
 ZEPHIR_INIT_CLASS(Phalcon_Filter) {
 
 	ZEPHIR_REGISTER_CLASS(Phalcon, Filter, phalcon, filter, phalcon_filter_method_entry, 0);
 
-	zend_declare_property_null(phalcon_filter_ce, SL("_filters"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	/**
+	 * @var array
+	 */
+	zend_declare_property_null(phalcon_filter_ce, SL("mapper"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_EMAIL"), "email" TSRMLS_CC);
+	/**
+	 * @var array
+	 */
+	zend_declare_property_null(phalcon_filter_ce, SL("services"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_ABSINT"), "absint" TSRMLS_CC);
+	phalcon_filter_ce->create_object = zephir_init_properties_Phalcon_Filter;
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_ABSINT"), "absint");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_INT"), "int" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_ALNUM"), "alnum");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_INT_CAST"), "int!" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_ALPHA"), "alpha");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_STRING"), "string" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_BOOL"), "bool");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_FLOAT"), "float" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_EMAIL"), "email");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_FLOAT_CAST"), "float!" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_FLOAT"), "float");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_ALPHANUM"), "alphanum" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_INT"), "int");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_TRIM"), "trim" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_LOWER"), "lower");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_STRIPTAGS"), "striptags" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_LOWERFIRST"), "lowerFirst");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_LOWER"), "lower" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_REGEX"), "regex");
 
-	zend_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_UPPER"), "upper" TSRMLS_CC);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_REMOVE"), "remove");
 
-	zend_class_implements(phalcon_filter_ce TSRMLS_CC, 1, phalcon_filterinterface_ce);
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_REPLACE"), "replace");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_SPECIAL"), "special");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_SPECIALFULL"), "specialFull");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_STRING"), "string");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_STRIPTAGS"), "striptags");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_TRIM"), "trim");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_UPPER"), "upper");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_UPPERFIRST"), "upperFirst");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_UPPERWORDS"), "upperWords");
+
+	zephir_declare_class_constant_string(phalcon_filter_ce, SL("FILTER_URL"), "url");
+
+	zend_class_implements(phalcon_filter_ce TSRMLS_CC, 1, phalcon_filter_filterinterface_ce);
 	return SUCCESS;
 
 }
 
 /**
- * Adds a user-defined filter
+ * Key value pairs with name as the key and a callable as the value for
+ * the service object
  */
-PHP_METHOD(Phalcon_Filter, add) {
+PHP_METHOD(Phalcon_Filter, __construct) {
 
-	zend_bool _0;
-	zval *name_param = NULL, *handler;
-	zval *name = NULL;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval *mapper_param = NULL;
+	zval mapper;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&mapper);
 
 	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 2, 0, &name_param, &handler);
+	zephir_fetch_params(1, 0, 1, &mapper_param);
 
-	if (unlikely(Z_TYPE_P(name_param) != IS_STRING && Z_TYPE_P(name_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'name' must be a string") TSRMLS_CC);
-		RETURN_MM_NULL();
-	}
-	if (likely(Z_TYPE_P(name_param) == IS_STRING)) {
-		zephir_get_strval(name, name_param);
+	if (!mapper_param) {
+		ZEPHIR_INIT_VAR(&mapper);
+		array_init(&mapper);
 	} else {
-		ZEPHIR_INIT_VAR(name);
-		ZVAL_EMPTY_STRING(name);
+	ZEPHIR_OBS_COPY_OR_DUP(&mapper, mapper_param);
 	}
 
 
-	_0 = Z_TYPE_P(handler) != IS_OBJECT;
-	if (_0) {
-		_0 = !(zephir_is_callable(handler TSRMLS_CC));
-	}
-	if (_0) {
-		ZEPHIR_THROW_EXCEPTION_DEBUG_STR(phalcon_filter_exception_ce, "Filter must be an object or callable", "phalcon/filter.zep", 75);
-		return;
-	}
-	zephir_update_property_array(this_ptr, SL("_filters"), name, handler TSRMLS_CC);
-	RETURN_THIS();
+	ZEPHIR_CALL_METHOD(NULL, this_ptr, "init", NULL, 0, &mapper);
+	zephir_check_call_status();
+	ZEPHIR_MM_RESTORE();
 
 }
 
 /**
- * Sanitizes a value with a specified single or set of filters
+ * Get a service. If it is not in the mapper array, create a new object,
+ * set it and then return it.
+ */
+PHP_METHOD(Phalcon_Filter, get) {
+
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval *name_param = NULL, definition, _0, _3, _7, _8, _1$$3, _4$$4, _5$$5, _6$$6;
+	zval name, _2$$3;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&name);
+	ZVAL_UNDEF(&_2$$3);
+	ZVAL_UNDEF(&definition);
+	ZVAL_UNDEF(&_0);
+	ZVAL_UNDEF(&_3);
+	ZVAL_UNDEF(&_7);
+	ZVAL_UNDEF(&_8);
+	ZVAL_UNDEF(&_1$$3);
+	ZVAL_UNDEF(&_4$$4);
+	ZVAL_UNDEF(&_5$$5);
+	ZVAL_UNDEF(&_6$$6);
+
+	ZEPHIR_MM_GROW();
+	zephir_fetch_params(1, 1, 0, &name_param);
+
+	if (UNEXPECTED(Z_TYPE_P(name_param) != IS_STRING && Z_TYPE_P(name_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'name' must be of the type string") TSRMLS_CC);
+		RETURN_MM_NULL();
+	}
+	if (EXPECTED(Z_TYPE_P(name_param) == IS_STRING)) {
+		zephir_get_strval(&name, name_param);
+	} else {
+		ZEPHIR_INIT_VAR(&name);
+		ZVAL_EMPTY_STRING(&name);
+	}
+
+
+	zephir_read_property(&_0, this_ptr, SL("mapper"), PH_NOISY_CC | PH_READONLY);
+	if (UNEXPECTED(!(zephir_array_isset(&_0, &name)))) {
+		ZEPHIR_INIT_VAR(&_1$$3);
+		object_init_ex(&_1$$3, phalcon_filter_exception_ce);
+		ZEPHIR_INIT_VAR(&_2$$3);
+		ZEPHIR_CONCAT_SVS(&_2$$3, "The service ", &name, " has not been found in the locator");
+		ZEPHIR_CALL_METHOD(NULL, &_1$$3, "__construct", NULL, 5, &_2$$3);
+		zephir_check_call_status();
+		zephir_throw_exception_debug(&_1$$3, "phalcon/Filter.zep", 74 TSRMLS_CC);
+		ZEPHIR_MM_RESTORE();
+		return;
+	}
+	zephir_read_property(&_3, this_ptr, SL("services"), PH_NOISY_CC | PH_READONLY);
+	if (!(zephir_array_isset(&_3, &name))) {
+		zephir_read_property(&_4$$4, this_ptr, SL("mapper"), PH_NOISY_CC | PH_READONLY);
+		ZEPHIR_OBS_VAR(&definition);
+		zephir_array_fetch(&definition, &_4$$4, &name, PH_NOISY, "phalcon/Filter.zep", 78 TSRMLS_CC);
+		if (Z_TYPE_P(&definition) == IS_STRING) {
+			ZEPHIR_INIT_VAR(&_5$$5);
+			ZEPHIR_LAST_CALL_STATUS = zephir_create_instance(&_5$$5, &definition TSRMLS_CC);
+			zephir_check_call_status();
+			zephir_update_property_array(this_ptr, SL("services"), &name, &_5$$5);
+		} else if (zephir_instance_of_ev(&definition, zend_ce_closure TSRMLS_CC)) {
+			ZEPHIR_INIT_VAR(&_6$$6);
+			ZEPHIR_CALL_USER_FUNC(&_6$$6, &definition);
+			zephir_check_call_status();
+			zephir_update_property_array(this_ptr, SL("services"), &name, &_6$$6);
+		} else {
+			zephir_update_property_array(this_ptr, SL("services"), &name, &definition);
+		}
+	}
+	zephir_read_property(&_7, this_ptr, SL("services"), PH_NOISY_CC | PH_READONLY);
+	zephir_array_fetch(&_8, &_7, &name, PH_NOISY | PH_READONLY, "phalcon/Filter.zep", 88 TSRMLS_CC);
+	RETURN_CTOR(&_8);
+
+}
+
+/**
+ * Checks if a service exists in the map array
+ */
+PHP_METHOD(Phalcon_Filter, has) {
+
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval *name_param = NULL, _0;
+	zval name;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&name);
+	ZVAL_UNDEF(&_0);
+
+	ZEPHIR_MM_GROW();
+	zephir_fetch_params(1, 1, 0, &name_param);
+
+	if (UNEXPECTED(Z_TYPE_P(name_param) != IS_STRING && Z_TYPE_P(name_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'name' must be of the type string") TSRMLS_CC);
+		RETURN_MM_NULL();
+	}
+	if (EXPECTED(Z_TYPE_P(name_param) == IS_STRING)) {
+		zephir_get_strval(&name, name_param);
+	} else {
+		ZEPHIR_INIT_VAR(&name);
+		ZVAL_EMPTY_STRING(&name);
+	}
+
+
+	zephir_read_property(&_0, this_ptr, SL("mapper"), PH_NOISY_CC | PH_READONLY);
+	RETURN_MM_BOOL(zephir_array_isset(&_0, &name));
+
+}
+
+/**
+ * Sanitizes a value with a specified single or set of sanitizers
  */
 PHP_METHOD(Phalcon_Filter, sanitize) {
 
-	HashTable *_1$$4, *_5$$6, *_12$$9;
-	HashPosition _0$$4, _4$$6, _11$$9;
-	zephir_fcall_cache_entry *_8 = NULL;
-	int ZEPHIR_LAST_CALL_STATUS;
-	zend_bool noRecursive, _10, _3$$5;
-	zval *value = NULL, *filters, *noRecursive_param = NULL, *filter = NULL, *arrayValue = NULL, *itemKey = NULL, *itemValue = NULL, *sanitizedValue = NULL, **_2$$4, **_6$$6, *_7$$7 = NULL, *_9$$8 = NULL, **_13$$9, *_14$$10 = NULL;
+	zend_string *_3$$3;
+	zend_ulong _2$$3;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zephir_fcall_cache_entry *_6 = NULL, *_8 = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zend_bool noRecursive, _12, _4$$5, _9$$10;
+	zval *value = NULL, value_sub, *sanitizers, sanitizers_sub, *noRecursive_param = NULL, sanitizer, sanitizerKey, sanitizerName, sanitizerParams, *_0$$3, _1$$3, _5$$8, _7$$9, _10$$13, _11$$14;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&value_sub);
+	ZVAL_UNDEF(&sanitizers_sub);
+	ZVAL_UNDEF(&sanitizer);
+	ZVAL_UNDEF(&sanitizerKey);
+	ZVAL_UNDEF(&sanitizerName);
+	ZVAL_UNDEF(&sanitizerParams);
+	ZVAL_UNDEF(&_1$$3);
+	ZVAL_UNDEF(&_5$$8);
+	ZVAL_UNDEF(&_7$$9);
+	ZVAL_UNDEF(&_10$$13);
+	ZVAL_UNDEF(&_11$$14);
 
 	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 2, 1, &value, &filters, &noRecursive_param);
+	zephir_fetch_params(1, 2, 1, &value, &sanitizers, &noRecursive_param);
 
 	ZEPHIR_SEPARATE_PARAM(value);
 	if (!noRecursive_param) {
@@ -136,227 +273,375 @@ PHP_METHOD(Phalcon_Filter, sanitize) {
 	}
 
 
-	if (Z_TYPE_P(filters) == IS_ARRAY) {
-		if (Z_TYPE_P(value) != IS_NULL) {
-			zephir_is_iterable(filters, &_1$$4, &_0$$4, 0, 0, "phalcon/filter.zep", 108);
-			for (
-			  ; zephir_hash_get_current_data_ex(_1$$4, (void**) &_2$$4, &_0$$4) == SUCCESS
-			  ; zephir_hash_move_forward_ex(_1$$4, &_0$$4)
-			) {
-				ZEPHIR_GET_HVALUE(filter, _2$$4);
-				_3$$5 = Z_TYPE_P(value) == IS_ARRAY;
-				if (_3$$5) {
-					_3$$5 = !noRecursive;
-				}
-				if (_3$$5) {
-					ZEPHIR_INIT_NVAR(arrayValue);
-					array_init(arrayValue);
-					zephir_is_iterable(value, &_5$$6, &_4$$6, 0, 0, "phalcon/filter.zep", 103);
-					for (
-					  ; zephir_hash_get_current_data_ex(_5$$6, (void**) &_6$$6, &_4$$6) == SUCCESS
-					  ; zephir_hash_move_forward_ex(_5$$6, &_4$$6)
-					) {
-						ZEPHIR_GET_HMKEY(itemKey, _5$$6, _4$$6);
-						ZEPHIR_GET_HVALUE(itemValue, _6$$6);
-						ZEPHIR_CALL_METHOD(&_7$$7, this_ptr, "_sanitize", &_8, 0, itemValue, filter);
-						zephir_check_call_status();
-						zephir_array_update_zval(&arrayValue, itemKey, &_7$$7, PH_COPY | PH_SEPARATE);
-					}
-					ZEPHIR_CPY_WRT(value, arrayValue);
+	if (Z_TYPE_P(sanitizers) == IS_ARRAY) {
+		if (Z_TYPE_P(value) == IS_NULL) {
+			RETVAL_ZVAL(value, 1, 0);
+			RETURN_MM();
+		}
+		zephir_is_iterable(sanitizers, 0, "phalcon/Filter.zep", 182);
+		if (Z_TYPE_P(sanitizers) == IS_ARRAY) {
+			ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(sanitizers), _2$$3, _3$$3, _0$$3)
+			{
+				ZEPHIR_INIT_NVAR(&sanitizerKey);
+				if (_3$$3 != NULL) { 
+					ZVAL_STR_COPY(&sanitizerKey, _3$$3);
 				} else {
-					ZEPHIR_CALL_METHOD(&_9$$8, this_ptr, "_sanitize", &_8, 0, value, filter);
-					zephir_check_call_status();
-					ZEPHIR_CPY_WRT(value, _9$$8);
+					ZVAL_LONG(&sanitizerKey, _2$$3);
 				}
+				ZEPHIR_INIT_NVAR(&sanitizer);
+				ZVAL_COPY(&sanitizer, _0$$3);
+				if (Z_TYPE_P(&sanitizer) == IS_ARRAY) {
+					ZEPHIR_CPY_WRT(&sanitizerName, &sanitizerKey);
+					ZEPHIR_CPY_WRT(&sanitizerParams, &sanitizer);
+				} else {
+					ZEPHIR_CPY_WRT(&sanitizerName, &sanitizer);
+					ZEPHIR_INIT_NVAR(&sanitizerParams);
+					array_init(&sanitizerParams);
+				}
+				_4$$5 = Z_TYPE_P(value) == IS_ARRAY;
+				if (_4$$5) {
+					_4$$5 = !noRecursive;
+				}
+				if (_4$$5) {
+					ZEPHIR_CALL_METHOD(&_5$$8, this_ptr, "processarrayvalues", &_6, 231, value, &sanitizerName, &sanitizerParams);
+					zephir_check_call_status();
+					ZEPHIR_CPY_WRT(value, &_5$$8);
+				} else {
+					ZEPHIR_CALL_METHOD(&_7$$9, this_ptr, "sanitizer", &_8, 232, value, &sanitizerName, &sanitizerParams);
+					zephir_check_call_status();
+					ZEPHIR_CPY_WRT(value, &_7$$9);
+				}
+			} ZEND_HASH_FOREACH_END();
+		} else {
+			ZEPHIR_CALL_METHOD(NULL, sanitizers, "rewind", NULL, 0);
+			zephir_check_call_status();
+			while (1) {
+				ZEPHIR_CALL_METHOD(&_1$$3, sanitizers, "valid", NULL, 0);
+				zephir_check_call_status();
+				if (!zend_is_true(&_1$$3)) {
+					break;
+				}
+				ZEPHIR_CALL_METHOD(&sanitizerKey, sanitizers, "key", NULL, 0);
+				zephir_check_call_status();
+				ZEPHIR_CALL_METHOD(&sanitizer, sanitizers, "current", NULL, 0);
+				zephir_check_call_status();
+					if (Z_TYPE_P(&sanitizer) == IS_ARRAY) {
+						ZEPHIR_CPY_WRT(&sanitizerName, &sanitizerKey);
+						ZEPHIR_CPY_WRT(&sanitizerParams, &sanitizer);
+					} else {
+						ZEPHIR_CPY_WRT(&sanitizerName, &sanitizer);
+						ZEPHIR_INIT_NVAR(&sanitizerParams);
+						array_init(&sanitizerParams);
+					}
+					_9$$10 = Z_TYPE_P(value) == IS_ARRAY;
+					if (_9$$10) {
+						_9$$10 = !noRecursive;
+					}
+					if (_9$$10) {
+						ZEPHIR_CALL_METHOD(&_10$$13, this_ptr, "processarrayvalues", &_6, 231, value, &sanitizerName, &sanitizerParams);
+						zephir_check_call_status();
+						ZEPHIR_CPY_WRT(value, &_10$$13);
+					} else {
+						ZEPHIR_CALL_METHOD(&_11$$14, this_ptr, "sanitizer", &_8, 232, value, &sanitizerName, &sanitizerParams);
+						zephir_check_call_status();
+						ZEPHIR_CPY_WRT(value, &_11$$14);
+					}
+				ZEPHIR_CALL_METHOD(NULL, sanitizers, "next", NULL, 0);
+				zephir_check_call_status();
 			}
 		}
+		ZEPHIR_INIT_NVAR(&sanitizer);
+		ZEPHIR_INIT_NVAR(&sanitizerKey);
 		RETVAL_ZVAL(value, 1, 0);
 		RETURN_MM();
 	}
-	_10 = Z_TYPE_P(value) == IS_ARRAY;
-	if (_10) {
-		_10 = !noRecursive;
+	_12 = Z_TYPE_P(value) == IS_ARRAY;
+	if (_12) {
+		_12 = !noRecursive;
 	}
-	if (_10) {
-		ZEPHIR_INIT_VAR(sanitizedValue);
-		array_init(sanitizedValue);
-		zephir_is_iterable(value, &_12$$9, &_11$$9, 0, 0, "phalcon/filter.zep", 120);
-		for (
-		  ; zephir_hash_get_current_data_ex(_12$$9, (void**) &_13$$9, &_11$$9) == SUCCESS
-		  ; zephir_hash_move_forward_ex(_12$$9, &_11$$9)
-		) {
-			ZEPHIR_GET_HMKEY(itemKey, _12$$9, _11$$9);
-			ZEPHIR_GET_HVALUE(itemValue, _13$$9);
-			ZEPHIR_CALL_METHOD(&_14$$10, this_ptr, "_sanitize", &_8, 0, itemValue, filters);
-			zephir_check_call_status();
-			zephir_array_update_zval(&sanitizedValue, itemKey, &_14$$10, PH_COPY | PH_SEPARATE);
-		}
-		RETURN_CCTOR(sanitizedValue);
+	if (_12) {
+		ZEPHIR_RETURN_CALL_METHOD(this_ptr, "processarrayvalues", &_6, 231, value, sanitizers);
+		zephir_check_call_status();
+		RETURN_MM();
 	}
-	ZEPHIR_RETURN_CALL_METHOD(this_ptr, "_sanitize", &_8, 0, value, filters);
+	ZEPHIR_RETURN_CALL_METHOD(this_ptr, "sanitizer", &_8, 232, value, sanitizers);
 	zephir_check_call_status();
 	RETURN_MM();
 
 }
 
 /**
- * Internal sanitize wrapper to filter_var
+ * Set a new service to the mapper array
  */
-PHP_METHOD(Phalcon_Filter, _sanitize) {
+PHP_METHOD(Phalcon_Filter, set) {
 
-	zval *_3$$4, *_10$$10;
-	zend_bool _1$$3, _2$$3;
-	zephir_fcall_cache_entry *_6 = NULL;
-	int ZEPHIR_LAST_CALL_STATUS;
-	zval *filter = NULL, *_15$$19;
-	zval *value, *filter_param = NULL, *filterObject = NULL, *_0, _4$$5, *_5$$5 = NULL, _7$$6, _8$$8, _9$$9, _11$$10, *_12$$12, *_13$$12, *_14$$19;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval *name_param = NULL, *service, service_sub, _0;
+	zval name;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&name);
+	ZVAL_UNDEF(&service_sub);
+	ZVAL_UNDEF(&_0);
 
 	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 2, 0, &value, &filter_param);
+	zephir_fetch_params(1, 2, 0, &name_param, &service);
 
-	if (unlikely(Z_TYPE_P(filter_param) != IS_STRING && Z_TYPE_P(filter_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'filter' must be a string") TSRMLS_CC);
+	if (UNEXPECTED(Z_TYPE_P(name_param) != IS_STRING && Z_TYPE_P(name_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'name' must be of the type string") TSRMLS_CC);
 		RETURN_MM_NULL();
 	}
-	if (likely(Z_TYPE_P(filter_param) == IS_STRING)) {
-		zephir_get_strval(filter, filter_param);
+	if (EXPECTED(Z_TYPE_P(name_param) == IS_STRING)) {
+		zephir_get_strval(&name, name_param);
 	} else {
-		ZEPHIR_INIT_VAR(filter);
-		ZVAL_EMPTY_STRING(filter);
+		ZEPHIR_INIT_VAR(&name);
+		ZVAL_EMPTY_STRING(&name);
 	}
 
 
-	ZEPHIR_OBS_VAR(filterObject);
-	_0 = zephir_fetch_nproperty_this(this_ptr, SL("_filters"), PH_NOISY_CC);
-	if (zephir_array_isset_fetch(&filterObject, _0, filter, 0 TSRMLS_CC)) {
-		_1$$3 = Z_TYPE_P(filterObject) == IS_OBJECT;
-		if (_1$$3) {
-			_1$$3 = zephir_instance_of_ev(filterObject, zend_ce_closure TSRMLS_CC);
-		}
-		_2$$3 = _1$$3;
-		if (!(_2$$3)) {
-			_2$$3 = zephir_is_callable(filterObject TSRMLS_CC);
-		}
-		if (_2$$3) {
-			ZEPHIR_INIT_VAR(_3$$4);
-			zephir_create_array(_3$$4, 1, 0 TSRMLS_CC);
-			zephir_array_fast_append(_3$$4, value);
-			ZEPHIR_CALL_USER_FUNC_ARRAY(return_value, filterObject, _3$$4);
-			zephir_check_call_status();
-			RETURN_MM();
-		}
-		ZEPHIR_RETURN_CALL_METHOD(filterObject, "filter", NULL, 0, value);
-		zephir_check_call_status();
-		RETURN_MM();
-	}
-	do {
-		if (ZEPHIR_IS_STRING(filter, "email")) {
-			ZEPHIR_SINIT_VAR(_4$$5);
-			ZVAL_STRING(&_4$$5, "FILTER_SANITIZE_EMAIL", 0);
-			ZEPHIR_CALL_FUNCTION(&_5$$5, "constant", NULL, 200, &_4$$5);
-			zephir_check_call_status();
-			ZEPHIR_RETURN_CALL_FUNCTION("filter_var", &_6, 201, value, _5$$5);
-			zephir_check_call_status();
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "int")) {
-			ZEPHIR_SINIT_VAR(_7$$6);
-			ZVAL_LONG(&_7$$6, 519);
-			ZEPHIR_RETURN_CALL_FUNCTION("filter_var", &_6, 201, value, &_7$$6);
-			zephir_check_call_status();
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "int!")) {
-			RETURN_MM_LONG(zephir_get_intval(value));
-		}
-		if (ZEPHIR_IS_STRING(filter, "absint")) {
-			ZEPHIR_SINIT_VAR(_8$$8);
-			ZVAL_LONG(&_8$$8, zephir_get_intval(value));
-			ZEPHIR_RETURN_CALL_FUNCTION("abs", NULL, 202, &_8$$8);
-			zephir_check_call_status();
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "string")) {
-			ZEPHIR_SINIT_VAR(_9$$9);
-			ZVAL_LONG(&_9$$9, 513);
-			ZEPHIR_RETURN_CALL_FUNCTION("filter_var", &_6, 201, value, &_9$$9);
-			zephir_check_call_status();
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "float")) {
-			ZEPHIR_INIT_VAR(_10$$10);
-			zephir_create_array(_10$$10, 1, 0 TSRMLS_CC);
-			add_assoc_long_ex(_10$$10, SS("flags"), 4096);
-			ZEPHIR_SINIT_VAR(_11$$10);
-			ZVAL_LONG(&_11$$10, 520);
-			ZEPHIR_RETURN_CALL_FUNCTION("filter_var", &_6, 201, value, &_11$$10, _10$$10);
-			zephir_check_call_status();
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "float!")) {
-			RETURN_MM_DOUBLE(zephir_get_doubleval(value));
-		}
-		if (ZEPHIR_IS_STRING(filter, "alphanum")) {
-			ZEPHIR_INIT_VAR(_12$$12);
-			ZVAL_STRING(_12$$12, "/[^A-Za-z0-9]/", ZEPHIR_TEMP_PARAM_COPY);
-			ZEPHIR_INIT_VAR(_13$$12);
-			ZVAL_STRING(_13$$12, "", ZEPHIR_TEMP_PARAM_COPY);
-			ZEPHIR_RETURN_CALL_FUNCTION("preg_replace", NULL, 39, _12$$12, _13$$12, value);
-			zephir_check_temp_parameter(_12$$12);
-			zephir_check_temp_parameter(_13$$12);
-			zephir_check_call_status();
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "trim")) {
-			zephir_fast_trim(return_value, value, NULL , ZEPHIR_TRIM_BOTH TSRMLS_CC);
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "striptags")) {
-			ZEPHIR_RETURN_CALL_FUNCTION("strip_tags", NULL, 203, value);
-			zephir_check_call_status();
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "lower")) {
-			if ((zephir_function_exists_ex(SS("mb_strtolower") TSRMLS_CC) == SUCCESS)) {
-				ZEPHIR_RETURN_CALL_FUNCTION("mb_strtolower", NULL, 204, value);
-				zephir_check_call_status();
-				RETURN_MM();
-			}
-			zephir_fast_strtolower(return_value, value);
-			RETURN_MM();
-		}
-		if (ZEPHIR_IS_STRING(filter, "upper")) {
-			if ((zephir_function_exists_ex(SS("mb_strtoupper") TSRMLS_CC) == SUCCESS)) {
-				ZEPHIR_RETURN_CALL_FUNCTION("mb_strtoupper", NULL, 205, value);
-				zephir_check_call_status();
-				RETURN_MM();
-			}
-			zephir_fast_strtoupper(return_value, value);
-			RETURN_MM();
-		}
-		ZEPHIR_INIT_VAR(_14$$19);
-		object_init_ex(_14$$19, phalcon_filter_exception_ce);
-		ZEPHIR_INIT_VAR(_15$$19);
-		ZEPHIR_CONCAT_SVS(_15$$19, "Sanitize filter '", filter, "' is not supported");
-		ZEPHIR_CALL_METHOD(NULL, _14$$19, "__construct", NULL, 9, _15$$19);
-		zephir_check_call_status();
-		zephir_throw_exception_debug(_14$$19, "phalcon/filter.zep", 214 TSRMLS_CC);
-		ZEPHIR_MM_RESTORE();
-		return;
-	} while(0);
-
+	zephir_update_property_array(this_ptr, SL("mapper"), &name, service);
+	zephir_read_property(&_0, this_ptr, SL("services"), PH_NOISY_CC | PH_READONLY);
+	zephir_array_unset(&_0, &name, PH_SEPARATE);
 	ZEPHIR_MM_RESTORE();
 
 }
 
 /**
- * Return the user-defined filters in the instance
+ * Loads the objects in the internal mapper array
  */
-PHP_METHOD(Phalcon_Filter, getFilters) {
+PHP_METHOD(Phalcon_Filter, init) {
 
+	zend_string *_3;
+	zend_ulong _2;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zephir_fcall_cache_entry *_4 = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval *mapper_param = NULL, name, service, *_0, _1;
+	zval mapper;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&mapper);
+	ZVAL_UNDEF(&name);
+	ZVAL_UNDEF(&service);
+	ZVAL_UNDEF(&_1);
+
+	ZEPHIR_MM_GROW();
+	zephir_fetch_params(1, 1, 0, &mapper_param);
+
+	ZEPHIR_OBS_COPY_OR_DUP(&mapper, mapper_param);
+
+
+	zephir_is_iterable(&mapper, 0, "phalcon/Filter.zep", 219);
+	if (Z_TYPE_P(&mapper) == IS_ARRAY) {
+		ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(&mapper), _2, _3, _0)
+		{
+			ZEPHIR_INIT_NVAR(&name);
+			if (_3 != NULL) { 
+				ZVAL_STR_COPY(&name, _3);
+			} else {
+				ZVAL_LONG(&name, _2);
+			}
+			ZEPHIR_INIT_NVAR(&service);
+			ZVAL_COPY(&service, _0);
+			ZEPHIR_CALL_METHOD(NULL, this_ptr, "set", &_4, 0, &name, &service);
+			zephir_check_call_status();
+		} ZEND_HASH_FOREACH_END();
+	} else {
+		ZEPHIR_CALL_METHOD(NULL, &mapper, "rewind", NULL, 0);
+		zephir_check_call_status();
+		while (1) {
+			ZEPHIR_CALL_METHOD(&_1, &mapper, "valid", NULL, 0);
+			zephir_check_call_status();
+			if (!zend_is_true(&_1)) {
+				break;
+			}
+			ZEPHIR_CALL_METHOD(&name, &mapper, "key", NULL, 0);
+			zephir_check_call_status();
+			ZEPHIR_CALL_METHOD(&service, &mapper, "current", NULL, 0);
+			zephir_check_call_status();
+				ZEPHIR_CALL_METHOD(NULL, this_ptr, "set", &_4, 0, &name, &service);
+				zephir_check_call_status();
+			ZEPHIR_CALL_METHOD(NULL, &mapper, "next", NULL, 0);
+			zephir_check_call_status();
+		}
+	}
+	ZEPHIR_INIT_NVAR(&service);
+	ZEPHIR_INIT_NVAR(&name);
+	ZEPHIR_MM_RESTORE();
+
+}
+
+/**
+ * Processes the array values with the relevant sanitizers
+ */
+PHP_METHOD(Phalcon_Filter, processArrayValues) {
+
+	zend_string *_3;
+	zend_ulong _2;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zephir_fcall_cache_entry *_5 = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval sanitizerName;
+	zval *values_param = NULL, *sanitizerName_param = NULL, *sanitizerParams_param = NULL, itemKey, itemValue, *_0, _1, _4$$3, _6$$4;
+	zval values, sanitizerParams, arrayValue;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&values);
+	ZVAL_UNDEF(&sanitizerParams);
+	ZVAL_UNDEF(&arrayValue);
+	ZVAL_UNDEF(&itemKey);
+	ZVAL_UNDEF(&itemValue);
+	ZVAL_UNDEF(&_1);
+	ZVAL_UNDEF(&_4$$3);
+	ZVAL_UNDEF(&_6$$4);
+	ZVAL_UNDEF(&sanitizerName);
+
+	ZEPHIR_MM_GROW();
+	zephir_fetch_params(1, 2, 1, &values_param, &sanitizerName_param, &sanitizerParams_param);
+
+	zephir_get_arrval(&values, values_param);
+	zephir_get_strval(&sanitizerName, sanitizerName_param);
+	if (!sanitizerParams_param) {
+		ZEPHIR_INIT_VAR(&sanitizerParams);
+		array_init(&sanitizerParams);
+	} else {
+		zephir_get_arrval(&sanitizerParams, sanitizerParams_param);
+	}
+
+
+	ZEPHIR_INIT_VAR(&arrayValue);
+	array_init(&arrayValue);
+	zephir_is_iterable(&values, 0, "phalcon/Filter.zep", 243);
+	if (Z_TYPE_P(&values) == IS_ARRAY) {
+		ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(&values), _2, _3, _0)
+		{
+			ZEPHIR_INIT_NVAR(&itemKey);
+			if (_3 != NULL) { 
+				ZVAL_STR_COPY(&itemKey, _3);
+			} else {
+				ZVAL_LONG(&itemKey, _2);
+			}
+			ZEPHIR_INIT_NVAR(&itemValue);
+			ZVAL_COPY(&itemValue, _0);
+			ZEPHIR_CALL_METHOD(&_4$$3, this_ptr, "sanitizer", &_5, 232, &itemValue, &sanitizerName, &sanitizerParams);
+			zephir_check_call_status();
+			zephir_array_update_zval(&arrayValue, &itemKey, &_4$$3, PH_COPY | PH_SEPARATE);
+		} ZEND_HASH_FOREACH_END();
+	} else {
+		ZEPHIR_CALL_METHOD(NULL, &values, "rewind", NULL, 0);
+		zephir_check_call_status();
+		while (1) {
+			ZEPHIR_CALL_METHOD(&_1, &values, "valid", NULL, 0);
+			zephir_check_call_status();
+			if (!zend_is_true(&_1)) {
+				break;
+			}
+			ZEPHIR_CALL_METHOD(&itemKey, &values, "key", NULL, 0);
+			zephir_check_call_status();
+			ZEPHIR_CALL_METHOD(&itemValue, &values, "current", NULL, 0);
+			zephir_check_call_status();
+				ZEPHIR_CALL_METHOD(&_6$$4, this_ptr, "sanitizer", &_5, 232, &itemValue, &sanitizerName, &sanitizerParams);
+				zephir_check_call_status();
+				zephir_array_update_zval(&arrayValue, &itemKey, &_6$$4, PH_COPY | PH_SEPARATE);
+			ZEPHIR_CALL_METHOD(NULL, &values, "next", NULL, 0);
+			zephir_check_call_status();
+		}
+	}
+	ZEPHIR_INIT_NVAR(&itemValue);
+	ZEPHIR_INIT_NVAR(&itemKey);
+	RETURN_CTOR(&arrayValue);
+
+}
+
+/**
+ * Internal sanitize wrapper for recursion
+ */
+PHP_METHOD(Phalcon_Filter, sanitizer) {
+
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval sanitizerParams, _1;
+	zval sanitizerName;
+	zval *value, value_sub, *sanitizerName_param = NULL, *sanitizerParams_param = NULL, sanitizerObject, params, _0;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&value_sub);
+	ZVAL_UNDEF(&sanitizerObject);
+	ZVAL_UNDEF(&params);
+	ZVAL_UNDEF(&_0);
+	ZVAL_UNDEF(&sanitizerName);
+	ZVAL_UNDEF(&sanitizerParams);
+	ZVAL_UNDEF(&_1);
+
+	ZEPHIR_MM_GROW();
+	zephir_fetch_params(1, 2, 1, &value, &sanitizerName_param, &sanitizerParams_param);
+
+	if (UNEXPECTED(Z_TYPE_P(sanitizerName_param) != IS_STRING && Z_TYPE_P(sanitizerName_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'sanitizerName' must be of the type string") TSRMLS_CC);
+		RETURN_MM_NULL();
+	}
+	if (EXPECTED(Z_TYPE_P(sanitizerName_param) == IS_STRING)) {
+		zephir_get_strval(&sanitizerName, sanitizerName_param);
+	} else {
+		ZEPHIR_INIT_VAR(&sanitizerName);
+		ZVAL_EMPTY_STRING(&sanitizerName);
+	}
+	if (!sanitizerParams_param) {
+		ZEPHIR_INIT_VAR(&sanitizerParams);
+		array_init(&sanitizerParams);
+	} else {
+		zephir_get_arrval(&sanitizerParams, sanitizerParams_param);
+	}
+
+
+	ZEPHIR_CALL_METHOD(&_0, this_ptr, "has", NULL, 0, &sanitizerName);
+	zephir_check_call_status();
+	if (!(zephir_is_true(&_0))) {
+		RETVAL_ZVAL(value, 1, 0);
+		RETURN_MM();
+	}
+	ZEPHIR_CALL_METHOD(&sanitizerObject, this_ptr, "get", NULL, 0, &sanitizerName);
+	zephir_check_call_status();
+	ZEPHIR_INIT_VAR(&_1);
+	zephir_create_array(&_1, 1, 0 TSRMLS_CC);
+	zephir_array_fast_append(&_1, value);
+	ZEPHIR_INIT_VAR(&params);
+	zephir_fast_array_merge(&params, &_1, &sanitizerParams TSRMLS_CC);
+	ZEPHIR_CALL_USER_FUNC_ARRAY(return_value, &sanitizerObject, &params);
+	zephir_check_call_status();
+	RETURN_MM();
+
+}
+
+zend_object *zephir_init_properties_Phalcon_Filter(zend_class_entry *class_type TSRMLS_DC) {
+
+		zval _0, _2, _1$$3, _3$$4;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+		ZVAL_UNDEF(&_0);
+	ZVAL_UNDEF(&_2);
+	ZVAL_UNDEF(&_1$$3);
+	ZVAL_UNDEF(&_3$$4);
+
+		ZEPHIR_MM_GROW();
 	
-
-	RETURN_MEMBER(this_ptr, "_filters");
+	{
+		zval local_this_ptr, *this_ptr = &local_this_ptr;
+		ZEPHIR_CREATE_OBJECT(this_ptr, class_type);
+		zephir_read_property(&_0, this_ptr, SL("services"), PH_NOISY_CC | PH_READONLY);
+		if (Z_TYPE_P(&_0) == IS_NULL) {
+			ZEPHIR_INIT_VAR(&_1$$3);
+			array_init(&_1$$3);
+			zephir_update_property_zval(this_ptr, SL("services"), &_1$$3);
+		}
+		zephir_read_property(&_2, this_ptr, SL("mapper"), PH_NOISY_CC | PH_READONLY);
+		if (Z_TYPE_P(&_2) == IS_NULL) {
+			ZEPHIR_INIT_VAR(&_3$$4);
+			array_init(&_3$$4);
+			zephir_update_property_zval(this_ptr, SL("mapper"), &_3$$4);
+		}
+		ZEPHIR_MM_RESTORE();
+		return Z_OBJ_P(this_ptr);
+	}
 
 }
 

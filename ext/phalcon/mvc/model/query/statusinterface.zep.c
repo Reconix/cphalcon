@@ -13,6 +13,14 @@
 
 
 /**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Phalcon\Mvc\Model\Query\StatusInterface
  *
  * Interface for Phalcon\Mvc\Model\Query\Status
@@ -26,14 +34,14 @@ ZEPHIR_INIT_CLASS(Phalcon_Mvc_Model_Query_StatusInterface) {
 }
 
 /**
- * Returns the model which executed the action
- */
-ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Query_StatusInterface, getModel);
-
-/**
  * Returns the messages produced by an operation failed
  */
 ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Query_StatusInterface, getMessages);
+
+/**
+ * Returns the model which executed the action
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Mvc_Model_Query_StatusInterface, getModel);
 
 /**
  * Allows to check if the executed operation was successful

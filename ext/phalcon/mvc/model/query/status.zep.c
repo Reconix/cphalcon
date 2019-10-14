@@ -19,6 +19,14 @@
 
 
 /**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Phalcon\Mvc\Model\Query\Status
  *
  * This class represents the status returned by a PHQL
@@ -26,7 +34,7 @@
  * information and the related messages produced by the
  * model which finally executes the operations when it fails
  *
- *<code>
+ *```php
  * $phql = "UPDATE Robots SET name = :name:, type = :type:, year = :year: WHERE id = :id:";
  *
  * $status = $app->modelsManager->executeQuery(
@@ -40,18 +48,18 @@
  * );
  *
  * // Check if the update was successful
- * if ($status->success() === true) {
+ * if ($status->success()) {
  *     echo "OK";
  * }
- *</code>
+ *```
  */
 ZEPHIR_INIT_CLASS(Phalcon_Mvc_Model_Query_Status) {
 
 	ZEPHIR_REGISTER_CLASS(Phalcon\\Mvc\\Model\\Query, Status, phalcon, mvc_model_query_status, phalcon_mvc_model_query_status_method_entry, 0);
 
-	zend_declare_property_null(phalcon_mvc_model_query_status_ce, SL("_success"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_query_status_ce, SL("model"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_property_null(phalcon_mvc_model_query_status_ce, SL("_model"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_query_status_ce, SL("success"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	zend_class_implements(phalcon_mvc_model_query_status_ce TSRMLS_CC, 1, phalcon_mvc_model_query_statusinterface_ce);
 	return SUCCESS;
@@ -63,34 +71,30 @@ ZEPHIR_INIT_CLASS(Phalcon_Mvc_Model_Query_Status) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Query_Status, __construct) {
 
-	zval *success_param = NULL, *model = NULL;
+	zval *success_param = NULL, *model = NULL, model_sub, __$true, __$false, __$null;
 	zend_bool success;
+	zval *this_ptr = getThis();
 
-	zephir_fetch_params(0, 1, 1, &success_param, &model);
+	ZVAL_UNDEF(&model_sub);
+	ZVAL_BOOL(&__$true, 1);
+	ZVAL_BOOL(&__$false, 0);
+	ZVAL_NULL(&__$null);
+
+	zephir_fetch_params_without_memory_grow(1, 1, &success_param, &model);
 
 	success = zephir_get_boolval(success_param);
 	if (!model) {
-		model = ZEPHIR_GLOBAL(global_null);
+		model = &model_sub;
+		model = &__$null;
 	}
 
 
 	if (success) {
-		zephir_update_property_this(this_ptr, SL("_success"), ZEPHIR_GLOBAL(global_true) TSRMLS_CC);
+		zephir_update_property_zval(this_ptr, SL("success"), &__$true);
 	} else {
-		zephir_update_property_this(this_ptr, SL("_success"), ZEPHIR_GLOBAL(global_false) TSRMLS_CC);
+		zephir_update_property_zval(this_ptr, SL("success"), &__$false);
 	}
-	zephir_update_property_this(this_ptr, SL("_model"), model TSRMLS_CC);
-
-}
-
-/**
- * Returns the model that executed the action
- */
-PHP_METHOD(Phalcon_Mvc_Model_Query_Status, getModel) {
-
-	
-
-	RETURN_MEMBER(this_ptr, "_model");
+	zephir_update_property_zval(this_ptr, SL("model"), model);
 
 }
 
@@ -99,20 +103,37 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Status, getModel) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Query_Status, getMessages) {
 
-	zval *model = NULL;
-	int ZEPHIR_LAST_CALL_STATUS;
+	zval model, _0;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&model);
+	ZVAL_UNDEF(&_0);
 
 	ZEPHIR_MM_GROW();
 
-	ZEPHIR_OBS_VAR(model);
-	zephir_read_property_this(&model, this_ptr, SL("_model"), PH_NOISY_CC);
-	if (Z_TYPE_P(model) != IS_OBJECT) {
+	zephir_read_property(&_0, this_ptr, SL("model"), PH_NOISY_CC | PH_READONLY);
+	ZEPHIR_CPY_WRT(&model, &_0);
+	if (Z_TYPE_P(&model) != IS_OBJECT) {
 		array_init(return_value);
 		RETURN_MM();
 	}
-	ZEPHIR_RETURN_CALL_METHOD(model, "getmessages", NULL, 0);
+	ZEPHIR_RETURN_CALL_METHOD(&model, "getmessages", NULL, 0);
 	zephir_check_call_status();
 	RETURN_MM();
+
+}
+
+/**
+ * Returns the model that executed the action
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Query_Status, getModel) {
+
+	zval *this_ptr = getThis();
+
+
+	RETURN_MEMBER(getThis(), "model");
 
 }
 
@@ -121,9 +142,10 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Status, getMessages) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Query_Status, success) {
 
-	
+	zval *this_ptr = getThis();
 
-	RETURN_MEMBER(this_ptr, "_success");
+
+	RETURN_MEMBER(getThis(), "success");
 
 }
 

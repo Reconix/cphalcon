@@ -15,10 +15,17 @@
 
 
 /**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Phalcon\Http\Request\Exception
  *
  * Exceptions thrown in Phalcon\Http\Request will use this class
- *
  */
 ZEPHIR_INIT_CLASS(Phalcon_Http_Request_Exception) {
 

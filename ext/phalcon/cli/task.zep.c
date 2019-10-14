@@ -18,14 +18,22 @@
 
 
 /**
- * Phalcon\Cli\Task
+ * This file is part of the Phalcon Framework.
  *
- * Every command-line task should extend this class that encapsulates all the task functionality
+ * (c) Phalcon Team <team@phalcon.io>
  *
- * A task can be used to run "tasks" such as migrations, cronjobs, unit-tests, or anything that you want.
- * The Task class should at least have a "mainAction" method
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
+ * Every command-line task should extend this class that encapsulates all the
+ * task functionality
  *
- *<code>
+ * A task can be used to run "tasks" such as migrations, cronjobs, unit-tests,
+ * or anything that you want. The Task class should at least have a "mainAction"
+ * method.
+ *
+ *```php
  * class HelloTask extends \Phalcon\Cli\Task
  * {
  *     // This action will be executed by default
@@ -39,7 +47,7 @@
  *
  *     }
  * }
- *</code>
+ *```
  */
 ZEPHIR_INIT_CLASS(Phalcon_Cli_Task) {
 
@@ -55,11 +63,14 @@ ZEPHIR_INIT_CLASS(Phalcon_Cli_Task) {
  */
 PHP_METHOD(Phalcon_Cli_Task, __construct) {
 
-	int ZEPHIR_LAST_CALL_STATUS;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval *this_ptr = getThis();
+
 
 	ZEPHIR_MM_GROW();
 
-	if ((zephir_method_exists_ex(this_ptr, SS("onconstruct") TSRMLS_CC) == SUCCESS)) {
+	if ((zephir_method_exists_ex(this_ptr, SL("onconstruct") TSRMLS_CC) == SUCCESS)) {
 		ZEPHIR_CALL_METHOD(NULL, this_ptr, "onconstruct", NULL, 0);
 		zephir_check_call_status();
 	}

@@ -13,8 +13,14 @@
 
 
 /**
- * Phalcon\Db\IndexInterface
+ * This file is part of the Phalcon Framework.
  *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Interface for Phalcon\Db\Index
  */
 ZEPHIR_INIT_CLASS(Phalcon_Db_IndexInterface) {
@@ -26,28 +32,17 @@ ZEPHIR_INIT_CLASS(Phalcon_Db_IndexInterface) {
 }
 
 /**
- * Gets the index name
- *
- * @return string
- */
-ZEPHIR_DOC_METHOD(Phalcon_Db_IndexInterface, getName);
-
-/**
  * Gets the columns that corresponds the index
- *
- * @return array
  */
 ZEPHIR_DOC_METHOD(Phalcon_Db_IndexInterface, getColumns);
 
 /**
- * Gets the index type
- *
- * @return string
+ * Gets the index name
  */
-ZEPHIR_DOC_METHOD(Phalcon_Db_IndexInterface, getType);
+ZEPHIR_DOC_METHOD(Phalcon_Db_IndexInterface, getName);
 
 /**
- * Restore a Phalcon\Db\Index object from export
+ * Gets the index type
  */
-ZEPHIR_DOC_METHOD(Phalcon_Db_IndexInterface, __set_state);
+ZEPHIR_DOC_METHOD(Phalcon_Db_IndexInterface, getType);
 

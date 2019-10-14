@@ -20,8 +20,14 @@
 
 
 /**
- * Phalcon\Acl\Role
+ * This file is part of the Phalcon Framework.
  *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * This class defines role entity and its description
  */
 ZEPHIR_INIT_CLASS(Phalcon_Acl_Role) {
@@ -30,15 +36,17 @@ ZEPHIR_INIT_CLASS(Phalcon_Acl_Role) {
 
 	/**
 	 * Role name
+	 *
 	 * @var string
 	 */
-	zend_declare_property_null(phalcon_acl_role_ce, SL("_name"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_acl_role_ce, SL("name"), ZEND_ACC_PRIVATE TSRMLS_CC);
 
 	/**
 	 * Role description
+	 *
 	 * @var string
 	 */
-	zend_declare_property_null(phalcon_acl_role_ce, SL("_description"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_acl_role_ce, SL("description"), ZEND_ACC_PRIVATE TSRMLS_CC);
 
 	zend_class_implements(phalcon_acl_role_ce TSRMLS_CC, 1, phalcon_acl_roleinterface_ce);
 	return SUCCESS;
@@ -50,9 +58,10 @@ ZEPHIR_INIT_CLASS(Phalcon_Acl_Role) {
  */
 PHP_METHOD(Phalcon_Acl_Role, getName) {
 
-	
+	zval *this_ptr = getThis();
 
-	RETURN_MEMBER(this_ptr, "_name");
+
+	RETURN_MEMBER(getThis(), "name");
 
 }
 
@@ -61,9 +70,10 @@ PHP_METHOD(Phalcon_Acl_Role, getName) {
  */
 PHP_METHOD(Phalcon_Acl_Role, __toString) {
 
-	
+	zval *this_ptr = getThis();
 
-	RETURN_MEMBER(this_ptr, "_name");
+
+	RETURN_MEMBER(getThis(), "name");
 
 }
 
@@ -72,9 +82,10 @@ PHP_METHOD(Phalcon_Acl_Role, __toString) {
  */
 PHP_METHOD(Phalcon_Acl_Role, getDescription) {
 
-	
+	zval *this_ptr = getThis();
 
-	RETURN_MEMBER(this_ptr, "_description");
+
+	RETURN_MEMBER(getThis(), "description");
 
 }
 
@@ -83,38 +94,41 @@ PHP_METHOD(Phalcon_Acl_Role, getDescription) {
  */
 PHP_METHOD(Phalcon_Acl_Role, __construct) {
 
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
 	zval *name_param = NULL, *description_param = NULL;
-	zval *name = NULL, *description = NULL;
+	zval name, description;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&name);
+	ZVAL_UNDEF(&description);
 
 	ZEPHIR_MM_GROW();
 	zephir_fetch_params(1, 1, 1, &name_param, &description_param);
 
-	if (unlikely(Z_TYPE_P(name_param) != IS_STRING && Z_TYPE_P(name_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'name' must be a string") TSRMLS_CC);
+	if (UNEXPECTED(Z_TYPE_P(name_param) != IS_STRING && Z_TYPE_P(name_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'name' must be of the type string") TSRMLS_CC);
 		RETURN_MM_NULL();
 	}
-	if (likely(Z_TYPE_P(name_param) == IS_STRING)) {
-		zephir_get_strval(name, name_param);
+	if (EXPECTED(Z_TYPE_P(name_param) == IS_STRING)) {
+		zephir_get_strval(&name, name_param);
 	} else {
-		ZEPHIR_INIT_VAR(name);
-		ZVAL_EMPTY_STRING(name);
+		ZEPHIR_INIT_VAR(&name);
+		ZVAL_EMPTY_STRING(&name);
 	}
 	if (!description_param) {
-		ZEPHIR_INIT_VAR(description);
-		ZVAL_EMPTY_STRING(description);
+		ZEPHIR_INIT_VAR(&description);
+		ZVAL_STRING(&description, "");
 	} else {
-		zephir_get_strval(description, description_param);
+		zephir_get_strval(&description, description_param);
 	}
 
 
-	if (ZEPHIR_IS_STRING(name, "*")) {
-		ZEPHIR_THROW_EXCEPTION_DEBUG_STR(phalcon_acl_exception_ce, "Role name cannot be '*'", "phalcon/acl/role.zep", 49);
+	if (UNEXPECTED(ZEPHIR_IS_STRING(&name, "*"))) {
+		ZEPHIR_THROW_EXCEPTION_DEBUG_STR(phalcon_acl_exception_ce, "Role name cannot be '*'", "phalcon/Acl/Role.zep", 40);
 		return;
 	}
-	zephir_update_property_this(this_ptr, SL("_name"), name TSRMLS_CC);
-	if (!(!description) && Z_STRLEN_P(description)) {
-		zephir_update_property_this(this_ptr, SL("_description"), description TSRMLS_CC);
-	}
+	zephir_update_property_zval(this_ptr, SL("name"), &name);
+	zephir_update_property_zval(this_ptr, SL("description"), &description);
 	ZEPHIR_MM_RESTORE();
 
 }

@@ -13,6 +13,14 @@
 
 
 /**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Phalcon\Http\Response\HeadersInterface
  *
  * Interface for Phalcon\Http\Response\Headers compatible bags
@@ -26,24 +34,14 @@ ZEPHIR_INIT_CLASS(Phalcon_Http_Response_HeadersInterface) {
 }
 
 /**
- * Sets a header to be sent at the end of the request
- */
-ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, set);
-
-/**
  * Gets a header value from the internal bag
  */
 ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, get);
 
 /**
- * Sets a raw header to be sent at the end of the request
+ * Returns true if the header is set, false otherwise
  */
-ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, setRaw);
-
-/**
- * Sends the headers to the client
- */
-ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, send);
+ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, has);
 
 /**
  * Reset set headers
@@ -51,7 +49,17 @@ ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, send);
 ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, reset);
 
 /**
- * Restore a \Phalcon\Http\Response\Headers object
+ * Sends the headers to the client
  */
-ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, __set_state);
+ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, send);
+
+/**
+ * Sets a header to be sent at the end of the request
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, set);
+
+/**
+ * Sets a raw header to be sent at the end of the request
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Http_Response_HeadersInterface, setRaw);
 

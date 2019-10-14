@@ -13,11 +13,20 @@
 
 
 /**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Phalcon\Events\Manager
  *
- * Phalcon Events Manager, offers an easy way to intercept and manipulate, if needed,
- * the normal flow of operation. With the EventsManager the developer can create hooks or
- * plugins that will offer monitoring of data, manipulation, conditional execution and much more.
+ * Phalcon Events Manager, offers an easy way to intercept and manipulate, if
+ * needed, the normal flow of operation. With the EventsManager the developer
+ * can create hooks or plugins that will offer monitoring of data, manipulation,
+ * conditional execution and much more.
  */
 ZEPHIR_INIT_CLASS(Phalcon_Events_ManagerInterface) {
 
@@ -30,7 +39,6 @@ ZEPHIR_INIT_CLASS(Phalcon_Events_ManagerInterface) {
 /**
  * Attach a listener to the events manager
  *
- * @param string eventType
  * @param object|callable handler
  */
 ZEPHIR_DOC_METHOD(Phalcon_Events_ManagerInterface, attach);
@@ -38,7 +46,6 @@ ZEPHIR_DOC_METHOD(Phalcon_Events_ManagerInterface, attach);
 /**
  * Detach the listener from the events manager
  *
- * @param string eventType
  * @param object handler
  */
 ZEPHIR_DOC_METHOD(Phalcon_Events_ManagerInterface, detach);
@@ -49,9 +56,9 @@ ZEPHIR_DOC_METHOD(Phalcon_Events_ManagerInterface, detach);
 ZEPHIR_DOC_METHOD(Phalcon_Events_ManagerInterface, detachAll);
 
 /**
- * Fires an event in the events manager causing the active listeners to be notified about it
+ * Fires an event in the events manager causing the active listeners to be
+ * notified about it
  *
- * @param string eventType
  * @param object source
  * @param mixed  data
  * @return mixed
@@ -60,9 +67,11 @@ ZEPHIR_DOC_METHOD(Phalcon_Events_ManagerInterface, fire);
 
 /**
  * Returns all the attached listeners of a certain type
- *
- * @param string type
- * @return array
  */
 ZEPHIR_DOC_METHOD(Phalcon_Events_ManagerInterface, getListeners);
+
+/**
+ * Check whether certain type of event has listeners
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Events_ManagerInterface, hasListeners);
 

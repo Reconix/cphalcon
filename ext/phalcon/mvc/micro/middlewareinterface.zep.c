@@ -13,8 +13,14 @@
 
 
 /**
- * Phalcon\Mvc\Micro\MiddlewareInterface
+ * This file is part of the Phalcon Framework.
  *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Allows to implement Phalcon\Mvc\Micro middleware in classes
  */
 ZEPHIR_INIT_CLASS(Phalcon_Mvc_Micro_MiddlewareInterface) {

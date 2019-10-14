@@ -13,8 +13,14 @@
 
 
 /**
- * Phalcon\Db\Reference
+ * This file is part of the Phalcon Framework.
  *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Interface for Phalcon\Db\Reference
  */
 ZEPHIR_INIT_CLASS(Phalcon_Db_ReferenceInterface) {
@@ -26,63 +32,42 @@ ZEPHIR_INIT_CLASS(Phalcon_Db_ReferenceInterface) {
 }
 
 /**
- * Gets the index name
- *
- * @return string
- */
-ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getName);
-
-/**
- * Gets the schema where referenced table is
- *
- * @return string
- */
-ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getSchemaName);
-
-/**
- * Gets the schema where referenced table is
- *
- * @return string
- */
-ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getReferencedSchema);
-
-/**
  * Gets local columns which reference is based
- *
- * @return array
  */
 ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getColumns);
 
 /**
- * Gets the referenced table
- *
- * @return string
+ * Gets the index name
  */
-ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getReferencedTable);
-
-/**
- * Gets referenced columns
- *
- * @return array
- */
-ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getReferencedColumns);
+ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getName);
 
 /**
  * Gets the referenced on delete
- *
- * @return string
  */
 ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getOnDelete);
 
 /**
  * Gets the referenced on update
- *
- * @return string
  */
 ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getOnUpdate);
 
 /**
- * Restore a Phalcon\Db\Reference object from export
+ * Gets referenced columns
  */
-ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, __set_state);
+ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getReferencedColumns);
+
+/**
+ * Gets the schema where referenced table is
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getReferencedSchema);
+
+/**
+ * Gets the referenced table
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getReferencedTable);
+
+/**
+ * Gets the schema where referenced table is
+ */
+ZEPHIR_DOC_METHOD(Phalcon_Db_ReferenceInterface, getSchemaName);
 

@@ -15,18 +15,25 @@
 #include "kernel/fcall.h"
 #include "kernel/memory.h"
 #include "kernel/operators.h"
-#include "kernel/array.h"
-#include "ext/spl/spl_exceptions.h"
-#include "kernel/exception.h"
+#include "kernel/object.h"
 
 
 /**
- * Phalcon\Validation\Validator\Alnum
+ * This file is part of the Phalcon Framework.
  *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
+/**
  * Check for alphanumeric character(s)
  *
- * <code>
+ * ```php
+ * use Phalcon\Validation;
  * use Phalcon\Validation\Validator\Alnum as AlnumValidator;
+ *
+ * $validator = new Validation();
  *
  * $validator->add(
  *     "username",
@@ -51,11 +58,13 @@
  *         ]
  *     )
  * );
- * </code>
+ * ```
  */
 ZEPHIR_INIT_CLASS(Phalcon_Validation_Validator_Alnum) {
 
-	ZEPHIR_REGISTER_CLASS_EX(Phalcon\\Validation\\Validator, Alnum, phalcon, validation_validator_alnum, phalcon_validation_validator_ce, phalcon_validation_validator_alnum_method_entry, 0);
+	ZEPHIR_REGISTER_CLASS_EX(Phalcon\\Validation\\Validator, Alnum, phalcon, validation_validator_alnum, phalcon_validation_abstractvalidator_ce, phalcon_validation_validator_alnum_method_entry, 0);
+
+	zend_declare_property_string(phalcon_validation_validator_alnum_ce, SL("template"), "Field :field must contain only letters and numbers", ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	return SUCCESS;
 
@@ -66,81 +75,30 @@ ZEPHIR_INIT_CLASS(Phalcon_Validation_Validator_Alnum) {
  */
 PHP_METHOD(Phalcon_Validation_Validator_Alnum, validate) {
 
-	int ZEPHIR_LAST_CALL_STATUS;
-	zval *field = NULL;
-	zval *validation, *field_param = NULL, *value = NULL, *message = NULL, *label = NULL, *replacePairs = NULL, *code = NULL, *_0 = NULL, *_1$$3 = NULL, *_6$$3 = NULL, *_7$$3, *_2$$4, *_3$$6, *_4$$7, *_5$$8;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zend_long ZEPHIR_LAST_CALL_STATUS;
+	zval *validation, validation_sub, *field, field_sub, value, _0, _1$$3;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&validation_sub);
+	ZVAL_UNDEF(&field_sub);
+	ZVAL_UNDEF(&value);
+	ZVAL_UNDEF(&_0);
+	ZVAL_UNDEF(&_1$$3);
 
 	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 2, 0, &validation, &field_param);
+	zephir_fetch_params(1, 2, 0, &validation, &field);
 
-	if (unlikely(Z_TYPE_P(field_param) != IS_STRING && Z_TYPE_P(field_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'field' must be a string") TSRMLS_CC);
-		RETURN_MM_NULL();
-	}
-	if (likely(Z_TYPE_P(field_param) == IS_STRING)) {
-		zephir_get_strval(field, field_param);
-	} else {
-		ZEPHIR_INIT_VAR(field);
-		ZVAL_EMPTY_STRING(field);
-	}
 
 
 	ZEPHIR_CALL_METHOD(&value, validation, "getvalue", NULL, 0, field);
 	zephir_check_call_status();
-	ZEPHIR_CALL_FUNCTION(&_0, "ctype_alnum", NULL, 467, value);
+	ZEPHIR_CALL_FUNCTION(&_0, "ctype_alnum", NULL, 0, &value);
 	zephir_check_call_status();
-	if (!(zephir_is_true(_0))) {
-		ZEPHIR_INIT_VAR(_1$$3);
-		ZVAL_STRING(_1$$3, "label", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(&label, this_ptr, "getoption", NULL, 0, _1$$3);
-		zephir_check_temp_parameter(_1$$3);
+	if (!(zephir_is_true(&_0))) {
+		ZEPHIR_CALL_METHOD(&_1$$3, this_ptr, "messagefactory", NULL, 0, validation, field);
 		zephir_check_call_status();
-		if (Z_TYPE_P(label) == IS_ARRAY) {
-			zephir_array_fetch(&_2$$4, label, field, PH_NOISY | PH_READONLY, "phalcon/validation/validator/alnum.zep", 75 TSRMLS_CC);
-			ZEPHIR_CPY_WRT(label, _2$$4);
-		}
-		if (ZEPHIR_IS_EMPTY(label)) {
-			ZEPHIR_CALL_METHOD(&label, validation, "getlabel", NULL, 0, field);
-			zephir_check_call_status();
-		}
-		ZEPHIR_INIT_NVAR(_1$$3);
-		ZVAL_STRING(_1$$3, "message", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(&message, this_ptr, "getoption", NULL, 0, _1$$3);
-		zephir_check_temp_parameter(_1$$3);
-		zephir_check_call_status();
-		if (Z_TYPE_P(message) == IS_ARRAY) {
-			zephir_array_fetch(&_3$$6, message, field, PH_NOISY | PH_READONLY, "phalcon/validation/validator/alnum.zep", 83 TSRMLS_CC);
-			ZEPHIR_CPY_WRT(message, _3$$6);
-		}
-		ZEPHIR_INIT_VAR(replacePairs);
-		zephir_create_array(replacePairs, 1, 0 TSRMLS_CC);
-		zephir_array_update_string(&replacePairs, SL(":field"), &label, PH_COPY | PH_SEPARATE);
-		if (ZEPHIR_IS_EMPTY(message)) {
-			ZEPHIR_INIT_VAR(_4$$7);
-			ZVAL_STRING(_4$$7, "Alnum", ZEPHIR_TEMP_PARAM_COPY);
-			ZEPHIR_CALL_METHOD(&message, validation, "getdefaultmessage", NULL, 0, _4$$7);
-			zephir_check_temp_parameter(_4$$7);
-			zephir_check_call_status();
-		}
-		ZEPHIR_INIT_NVAR(_1$$3);
-		ZVAL_STRING(_1$$3, "code", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(&code, this_ptr, "getoption", NULL, 0, _1$$3);
-		zephir_check_temp_parameter(_1$$3);
-		zephir_check_call_status();
-		if (Z_TYPE_P(code) == IS_ARRAY) {
-			zephir_array_fetch(&_5$$8, code, field, PH_NOISY | PH_READONLY, "phalcon/validation/validator/alnum.zep", 93 TSRMLS_CC);
-			ZEPHIR_CPY_WRT(code, _5$$8);
-		}
-		ZEPHIR_INIT_NVAR(_1$$3);
-		object_init_ex(_1$$3, phalcon_validation_message_ce);
-		ZEPHIR_CALL_FUNCTION(&_6$$3, "strtr", NULL, 26, message, replacePairs);
-		zephir_check_call_status();
-		ZEPHIR_INIT_VAR(_7$$3);
-		ZVAL_STRING(_7$$3, "Alnum", ZEPHIR_TEMP_PARAM_COPY);
-		ZEPHIR_CALL_METHOD(NULL, _1$$3, "__construct", NULL, 466, _6$$3, field, _7$$3, code);
-		zephir_check_temp_parameter(_7$$3);
-		zephir_check_call_status();
-		ZEPHIR_CALL_METHOD(NULL, validation, "appendmessage", NULL, 0, _1$$3);
+		ZEPHIR_CALL_METHOD(NULL, validation, "appendmessage", NULL, 0, &_1$$3);
 		zephir_check_call_status();
 		RETURN_MM_BOOL(0);
 	}

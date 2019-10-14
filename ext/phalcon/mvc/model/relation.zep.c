@@ -13,13 +13,21 @@
 
 #include "kernel/main.h"
 #include "kernel/object.h"
+#include "kernel/memory.h"
+#include "kernel/operators.h"
 #include "ext/spl/spl_exceptions.h"
 #include "kernel/exception.h"
-#include "kernel/operators.h"
-#include "kernel/memory.h"
 #include "kernel/array.h"
 
 
+/**
+ * This file is part of the Phalcon Framework.
+ *
+ * (c) Phalcon Team <team@phalcon.io>
+ *
+ * For the full copyright and license information, please view the LICENSE.txt
+ * file that was distributed with this source code.
+ */
 /**
  * Phalcon\Mvc\Model\Relation
  *
@@ -29,37 +37,37 @@ ZEPHIR_INIT_CLASS(Phalcon_Mvc_Model_Relation) {
 
 	ZEPHIR_REGISTER_CLASS(Phalcon\\Mvc\\Model, Relation, phalcon, mvc_model_relation, phalcon_mvc_model_relation_method_entry, 0);
 
-	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("_type"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("fields"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("_referencedModel"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("intermediateFields"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("_fields"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("intermediateModel"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("_referencedFields"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("intermediateReferencedFields"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("_intermediateModel"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("options"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("_intermediateFields"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("referencedFields"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("_intermediateReferencedFields"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("referencedModel"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("_options"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_relation_ce, SL("type"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	zend_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("BELONGS_TO"), 0 TSRMLS_CC);
+	zephir_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("ACTION_CASCADE"), 2);
 
-	zend_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("HAS_ONE"), 1 TSRMLS_CC);
+	zephir_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("ACTION_RESTRICT"), 1);
 
-	zend_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("HAS_MANY"), 2 TSRMLS_CC);
+	zephir_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("BELONGS_TO"), 0);
 
-	zend_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("HAS_ONE_THROUGH"), 3 TSRMLS_CC);
+	zephir_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("HAS_MANY"), 2);
 
-	zend_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("HAS_MANY_THROUGH"), 4 TSRMLS_CC);
+	zephir_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("HAS_MANY_THROUGH"), 4);
 
-	zend_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("NO_ACTION"), 0 TSRMLS_CC);
+	zephir_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("HAS_ONE"), 1);
 
-	zend_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("ACTION_RESTRICT"), 1 TSRMLS_CC);
+	zephir_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("HAS_ONE_THROUGH"), 3);
 
-	zend_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("ACTION_CASCADE"), 2 TSRMLS_CC);
+	zephir_declare_class_constant_long(phalcon_mvc_model_relation_ce, SL("NO_ACTION"), 0);
 
 	zend_class_implements(phalcon_mvc_model_relation_ce TSRMLS_CC, 1, phalcon_mvc_model_relationinterface_ce);
 	return SUCCESS;
@@ -69,97 +77,54 @@ ZEPHIR_INIT_CLASS(Phalcon_Mvc_Model_Relation) {
 /**
  * Phalcon\Mvc\Model\Relation constructor
  *
- * @param int type
- * @param string referencedModel
  * @param string|array fields
  * @param string|array referencedFields
- * @param array options
  */
 PHP_METHOD(Phalcon_Mvc_Model_Relation, __construct) {
 
-	zval *referencedModel = NULL;
-	zval *type, *referencedModel_param = NULL, *fields, *referencedFields, *options = NULL;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval options;
+	zval referencedModel;
+	zval *type_param = NULL, *referencedModel_param = NULL, *fields, fields_sub, *referencedFields, referencedFields_sub, *options_param = NULL, _0;
+	zend_long type;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&fields_sub);
+	ZVAL_UNDEF(&referencedFields_sub);
+	ZVAL_UNDEF(&_0);
+	ZVAL_UNDEF(&referencedModel);
+	ZVAL_UNDEF(&options);
 
 	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 4, 1, &type, &referencedModel_param, &fields, &referencedFields, &options);
+	zephir_fetch_params(1, 4, 1, &type_param, &referencedModel_param, &fields, &referencedFields, &options_param);
 
-	if (unlikely(Z_TYPE_P(referencedModel_param) != IS_STRING && Z_TYPE_P(referencedModel_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'referencedModel' must be a string") TSRMLS_CC);
+	type = zephir_get_intval(type_param);
+	if (UNEXPECTED(Z_TYPE_P(referencedModel_param) != IS_STRING && Z_TYPE_P(referencedModel_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'referencedModel' must be of the type string") TSRMLS_CC);
 		RETURN_MM_NULL();
 	}
-	if (likely(Z_TYPE_P(referencedModel_param) == IS_STRING)) {
-		zephir_get_strval(referencedModel, referencedModel_param);
+	if (EXPECTED(Z_TYPE_P(referencedModel_param) == IS_STRING)) {
+		zephir_get_strval(&referencedModel, referencedModel_param);
 	} else {
-		ZEPHIR_INIT_VAR(referencedModel);
-		ZVAL_EMPTY_STRING(referencedModel);
+		ZEPHIR_INIT_VAR(&referencedModel);
+		ZVAL_EMPTY_STRING(&referencedModel);
 	}
-	if (!options) {
-		options = ZEPHIR_GLOBAL(global_null);
-	}
-
-
-	zephir_update_property_this(this_ptr, SL("_type"), type TSRMLS_CC);
-	zephir_update_property_this(this_ptr, SL("_referencedModel"), referencedModel TSRMLS_CC);
-	zephir_update_property_this(this_ptr, SL("_fields"), fields TSRMLS_CC);
-	zephir_update_property_this(this_ptr, SL("_referencedFields"), referencedFields TSRMLS_CC);
-	zephir_update_property_this(this_ptr, SL("_options"), options TSRMLS_CC);
-	ZEPHIR_MM_RESTORE();
-
-}
-
-/**
- * Sets the intermediate model data for has-*-through relations
- *
- * @param string|array intermediateFields
- * @param string intermediateModel
- * @param string intermediateReferencedFields
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, setIntermediateRelation) {
-
-	zval *intermediateModel = NULL;
-	zval *intermediateFields, *intermediateModel_param = NULL, *intermediateReferencedFields;
-
-	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 3, 0, &intermediateFields, &intermediateModel_param, &intermediateReferencedFields);
-
-	if (unlikely(Z_TYPE_P(intermediateModel_param) != IS_STRING && Z_TYPE_P(intermediateModel_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'intermediateModel' must be a string") TSRMLS_CC);
-		RETURN_MM_NULL();
-	}
-	if (likely(Z_TYPE_P(intermediateModel_param) == IS_STRING)) {
-		zephir_get_strval(intermediateModel, intermediateModel_param);
+	if (!options_param) {
+		ZEPHIR_INIT_VAR(&options);
+		array_init(&options);
 	} else {
-		ZEPHIR_INIT_VAR(intermediateModel);
-		ZVAL_EMPTY_STRING(intermediateModel);
+		zephir_get_arrval(&options, options_param);
 	}
 
 
-	zephir_update_property_this(this_ptr, SL("_intermediateFields"), intermediateFields TSRMLS_CC);
-	zephir_update_property_this(this_ptr, SL("_intermediateModel"), intermediateModel TSRMLS_CC);
-	zephir_update_property_this(this_ptr, SL("_intermediateReferencedFields"), intermediateReferencedFields TSRMLS_CC);
+	ZEPHIR_INIT_ZVAL_NREF(_0);
+	ZVAL_LONG(&_0, type);
+	zephir_update_property_zval(this_ptr, SL("type"), &_0);
+	zephir_update_property_zval(this_ptr, SL("referencedModel"), &referencedModel);
+	zephir_update_property_zval(this_ptr, SL("fields"), fields);
+	zephir_update_property_zval(this_ptr, SL("referencedFields"), referencedFields);
+	zephir_update_property_zval(this_ptr, SL("options"), &options);
 	ZEPHIR_MM_RESTORE();
-
-}
-
-/**
- * Returns the relation type
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, getType) {
-
-	
-
-	RETURN_MEMBER(this_ptr, "_type");
-
-}
-
-/**
- * Returns the referenced model
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, getReferencedModel) {
-
-	
-
-	RETURN_MEMBER(this_ptr, "_referencedModel");
 
 }
 
@@ -170,80 +135,10 @@ PHP_METHOD(Phalcon_Mvc_Model_Relation, getReferencedModel) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Relation, getFields) {
 
-	
-
-	RETURN_MEMBER(this_ptr, "_fields");
-
-}
-
-/**
- * Returns the referenced fields
- *
- * @return string|array
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, getReferencedFields) {
-
-	
-
-	RETURN_MEMBER(this_ptr, "_referencedFields");
-
-}
-
-/**
- * Returns the options
- *
- * @return string|array
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, getOptions) {
-
-	
-
-	RETURN_MEMBER(this_ptr, "_options");
-
-}
-
-/**
- * Returns an option by the specified name
- * If the option doesn't exist null is returned	 
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, getOption) {
-
-	zval *name_param = NULL, *option = NULL, *_0;
-	zval *name = NULL;
-
-	ZEPHIR_MM_GROW();
-	zephir_fetch_params(1, 1, 0, &name_param);
-
-	if (unlikely(Z_TYPE_P(name_param) != IS_STRING && Z_TYPE_P(name_param) != IS_NULL)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'name' must be a string") TSRMLS_CC);
-		RETURN_MM_NULL();
-	}
-	if (likely(Z_TYPE_P(name_param) == IS_STRING)) {
-		zephir_get_strval(name, name_param);
-	} else {
-		ZEPHIR_INIT_VAR(name);
-		ZVAL_EMPTY_STRING(name);
-	}
+	zval *this_ptr = getThis();
 
 
-	_0 = zephir_fetch_nproperty_this(this_ptr, SL("_options"), PH_NOISY_CC);
-	if (zephir_array_isset_fetch(&option, _0, name, 1 TSRMLS_CC)) {
-		RETURN_CTOR(option);
-	}
-	RETURN_MM_NULL();
-
-}
-
-/**
- * Check whether the relation act as a foreign key
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, isForeignKey) {
-
-	zval *_0;
-
-
-	_0 = zephir_fetch_nproperty_this(this_ptr, SL("_options"), PH_NOISY_CC);
-	RETURN_BOOL(zephir_array_isset_string(_0, SS("foreignKey")));
+	RETURN_MEMBER(getThis(), "fields");
 
 }
 
@@ -254,76 +149,24 @@ PHP_METHOD(Phalcon_Mvc_Model_Relation, isForeignKey) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Relation, getForeignKey) {
 
-	zval *options = NULL, *foreignKey = NULL;
+	zval options, foreignKey, _0;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval *this_ptr = getThis();
 
+	ZVAL_UNDEF(&options);
+	ZVAL_UNDEF(&foreignKey);
+	ZVAL_UNDEF(&_0);
 
-	options = zephir_fetch_nproperty_this(this_ptr, SL("_options"), PH_NOISY_CC);
-	if (Z_TYPE_P(options) == IS_ARRAY) {
-		if (zephir_array_isset_string_fetch(&foreignKey, options, SS("foreignKey"), 1 TSRMLS_CC)) {
-			if (zephir_is_true(foreignKey)) {
-				RETURN_CTORW(foreignKey);
-			}
+	ZEPHIR_MM_GROW();
+
+	zephir_read_property(&_0, this_ptr, SL("options"), PH_NOISY_CC | PH_READONLY);
+	ZEPHIR_CPY_WRT(&options, &_0);
+	if (zephir_array_isset_string_fetch(&foreignKey, &options, SL("foreignKey"), 1)) {
+		if (zephir_is_true(&foreignKey)) {
+			RETURN_CTOR(&foreignKey);
 		}
 	}
-	RETURN_BOOL(0);
-
-}
-
-/**
- * Returns parameters that must be always used when the related records are obtained
- *
- * @return array
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, getParams) {
-
-	zval *options = NULL, *params = NULL;
-
-
-	options = zephir_fetch_nproperty_this(this_ptr, SL("_options"), PH_NOISY_CC);
-	if (Z_TYPE_P(options) == IS_ARRAY) {
-		if (zephir_array_isset_string_fetch(&params, options, SS("params"), 1 TSRMLS_CC)) {
-			if (zephir_is_true(params)) {
-				RETURN_CTORW(params);
-			}
-		}
-	}
-	RETURN_BOOL(0);
-
-}
-
-/**
- * Check whether the relation is a 'many-to-many' relation or not
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, isThrough) {
-
-	zend_bool _0;
-	zval *type = NULL;
-
-
-	type = zephir_fetch_nproperty_this(this_ptr, SL("_type"), PH_NOISY_CC);
-	_0 = ZEPHIR_IS_LONG(type, 3);
-	if (!(_0)) {
-		_0 = ZEPHIR_IS_LONG(type, 4);
-	}
-	RETURN_BOOL(_0);
-
-}
-
-/**
- * Check if records returned by getting belongs-to/has-many are implicitly cached during the current request
- */
-PHP_METHOD(Phalcon_Mvc_Model_Relation, isReusable) {
-
-	zval *options = NULL, *reusable = NULL;
-
-
-	options = zephir_fetch_nproperty_this(this_ptr, SL("_options"), PH_NOISY_CC);
-	if (Z_TYPE_P(options) == IS_ARRAY) {
-		if (zephir_array_isset_string_fetch(&reusable, options, SS("reusable"), 1 TSRMLS_CC)) {
-			RETURN_CTORW(reusable);
-		}
-	}
-	RETURN_BOOL(0);
+	RETURN_MM_BOOL(0);
 
 }
 
@@ -334,9 +177,10 @@ PHP_METHOD(Phalcon_Mvc_Model_Relation, isReusable) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Relation, getIntermediateFields) {
 
-	
+	zval *this_ptr = getThis();
 
-	RETURN_MEMBER(this_ptr, "_intermediateFields");
+
+	RETURN_MEMBER(getThis(), "intermediateFields");
 
 }
 
@@ -345,9 +189,10 @@ PHP_METHOD(Phalcon_Mvc_Model_Relation, getIntermediateFields) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Relation, getIntermediateModel) {
 
-	
+	zval *this_ptr = getThis();
 
-	RETURN_MEMBER(this_ptr, "_intermediateModel");
+
+	RETURN_MEMBER(getThis(), "intermediateModel");
 
 }
 
@@ -358,9 +203,234 @@ PHP_METHOD(Phalcon_Mvc_Model_Relation, getIntermediateModel) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Relation, getIntermediateReferencedFields) {
 
-	
+	zval *this_ptr = getThis();
 
-	RETURN_MEMBER(this_ptr, "_intermediateReferencedFields");
+
+	RETURN_MEMBER(getThis(), "intermediateReferencedFields");
+
+}
+
+/**
+ * Returns an option by the specified name
+ * If the option doesn't exist null is returned
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, getOption) {
+
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval *name_param = NULL, option, _0;
+	zval name;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&name);
+	ZVAL_UNDEF(&option);
+	ZVAL_UNDEF(&_0);
+
+	ZEPHIR_MM_GROW();
+	zephir_fetch_params(1, 1, 0, &name_param);
+
+	if (UNEXPECTED(Z_TYPE_P(name_param) != IS_STRING && Z_TYPE_P(name_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'name' must be of the type string") TSRMLS_CC);
+		RETURN_MM_NULL();
+	}
+	if (EXPECTED(Z_TYPE_P(name_param) == IS_STRING)) {
+		zephir_get_strval(&name, name_param);
+	} else {
+		ZEPHIR_INIT_VAR(&name);
+		ZVAL_EMPTY_STRING(&name);
+	}
+
+
+	zephir_read_property(&_0, this_ptr, SL("options"), PH_NOISY_CC | PH_READONLY);
+	if (!(zephir_array_isset_fetch(&option, &_0, &name, 1 TSRMLS_CC))) {
+		RETURN_MM_NULL();
+	}
+	RETURN_CTOR(&option);
+
+}
+
+/**
+ * Returns the options
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, getOptions) {
+
+	zval *this_ptr = getThis();
+
+
+	RETURN_MEMBER(getThis(), "options");
+
+}
+
+/**
+ * Returns parameters that must be always used when the related records are obtained
+ *
+ * @return array
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, getParams) {
+
+	zval options, params, _0;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&options);
+	ZVAL_UNDEF(&params);
+	ZVAL_UNDEF(&_0);
+
+	ZEPHIR_MM_GROW();
+
+	zephir_read_property(&_0, this_ptr, SL("options"), PH_NOISY_CC | PH_READONLY);
+	ZEPHIR_CPY_WRT(&options, &_0);
+	if (zephir_array_isset_string_fetch(&params, &options, SL("params"), 1)) {
+		if (zephir_is_true(&params)) {
+			RETURN_CTOR(&params);
+		}
+	}
+	RETURN_MM_BOOL(0);
+
+}
+
+/**
+ * Returns the relation type
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, getType) {
+
+	zval *this_ptr = getThis();
+
+
+	RETURN_MEMBER(getThis(), "type");
+
+}
+
+/**
+ * Returns the referenced fields
+ *
+ * @return string|array
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, getReferencedFields) {
+
+	zval *this_ptr = getThis();
+
+
+	RETURN_MEMBER(getThis(), "referencedFields");
+
+}
+
+/**
+ * Returns the referenced model
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, getReferencedModel) {
+
+	zval *this_ptr = getThis();
+
+
+	RETURN_MEMBER(getThis(), "referencedModel");
+
+}
+
+/**
+ * Check whether the relation act as a foreign key
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, isForeignKey) {
+
+	zval foreignKey, _0;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&foreignKey);
+	ZVAL_UNDEF(&_0);
+
+
+	zephir_read_property(&_0, this_ptr, SL("options"), PH_NOISY_CC | PH_READONLY);
+	if (!(zephir_array_isset_string_fetch(&foreignKey, &_0, SL("foreignKey"), 1))) {
+		RETURN_BOOL(0);
+	}
+	RETURN_BOOL(zephir_get_boolval(&foreignKey));
+
+}
+
+/**
+ * Check whether the relation is a 'many-to-many' relation or not
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, isThrough) {
+
+	zend_bool _1;
+	zval type, _0;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&type);
+	ZVAL_UNDEF(&_0);
+
+	ZEPHIR_MM_GROW();
+
+	zephir_read_property(&_0, this_ptr, SL("type"), PH_NOISY_CC | PH_READONLY);
+	ZEPHIR_CPY_WRT(&type, &_0);
+	_1 = ZEPHIR_IS_LONG(&type, 3);
+	if (!(_1)) {
+		_1 = ZEPHIR_IS_LONG(&type, 4);
+	}
+	RETURN_MM_BOOL(_1);
+
+}
+
+/**
+ * Check if records returned by getting belongs-to/has-many are implicitly cached during the current request
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, isReusable) {
+
+	zval options, reusable, _0;
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&options);
+	ZVAL_UNDEF(&reusable);
+	ZVAL_UNDEF(&_0);
+
+	ZEPHIR_MM_GROW();
+
+	zephir_read_property(&_0, this_ptr, SL("options"), PH_NOISY_CC | PH_READONLY);
+	ZEPHIR_CPY_WRT(&options, &_0);
+	if (!(zephir_array_isset_string_fetch(&reusable, &options, SL("reusable"), 1))) {
+		RETURN_MM_BOOL(0);
+	}
+	RETURN_CTOR(&reusable);
+
+}
+
+/**
+ * Sets the intermediate model data for has-*-through relations
+ *
+ * @param string|array intermediateFields
+ * @param string       intermediateReferencedFields
+ */
+PHP_METHOD(Phalcon_Mvc_Model_Relation, setIntermediateRelation) {
+
+	zephir_method_globals *ZEPHIR_METHOD_GLOBALS_PTR = NULL;
+	zval intermediateModel;
+	zval *intermediateFields, intermediateFields_sub, *intermediateModel_param = NULL, *intermediateReferencedFields, intermediateReferencedFields_sub;
+	zval *this_ptr = getThis();
+
+	ZVAL_UNDEF(&intermediateFields_sub);
+	ZVAL_UNDEF(&intermediateReferencedFields_sub);
+	ZVAL_UNDEF(&intermediateModel);
+
+	ZEPHIR_MM_GROW();
+	zephir_fetch_params(1, 3, 0, &intermediateFields, &intermediateModel_param, &intermediateReferencedFields);
+
+	if (UNEXPECTED(Z_TYPE_P(intermediateModel_param) != IS_STRING && Z_TYPE_P(intermediateModel_param) != IS_NULL)) {
+		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'intermediateModel' must be of the type string") TSRMLS_CC);
+		RETURN_MM_NULL();
+	}
+	if (EXPECTED(Z_TYPE_P(intermediateModel_param) == IS_STRING)) {
+		zephir_get_strval(&intermediateModel, intermediateModel_param);
+	} else {
+		ZEPHIR_INIT_VAR(&intermediateModel);
+		ZVAL_EMPTY_STRING(&intermediateModel);
+	}
+
+
+	zephir_update_property_zval(this_ptr, SL("intermediateFields"), intermediateFields);
+	zephir_update_property_zval(this_ptr, SL("intermediateModel"), &intermediateModel);
+	zephir_update_property_zval(this_ptr, SL("intermediateReferencedFields"), intermediateReferencedFields);
+	ZEPHIR_MM_RESTORE();
 
 }
 

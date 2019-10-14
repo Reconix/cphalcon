@@ -1,158 +1,79 @@
-Phalcon Framework
-=================
+# Phalcon Framework
 
 [![Build Status](https://travis-ci.org/phalcon/cphalcon.svg?branch=master)](https://travis-ci.org/phalcon/cphalcon)
-[![Windows Build](https://ci.appveyor.com/api/projects/status/github/phalcon/cphalcon?branch=master&svg=true)](https://ci.appveyor.com/project/phalcon/cphalcon/branch/master)
+[![Windows Build](https://ci.appveyor.com/api/projects/status/wkws3mgxaoy0u9a6/branch/master?svg=true)](https://ci.appveyor.com/project/sergeyklay/cphalcon/branch/master)
+[![Phalcon Backers](https://img.shields.io/badge/phalcon-backers-99ddc0.svg)](https://github.com/phalcon/cphalcon/blob/master/BACKERS.md)
+[![OpenCollective](https://opencollective.com/phalcon/backers/badge.svg)](#backers)
+[![OpenCollective](https://opencollective.com/phalcon/sponsors/badge.svg)](#sponsors)
 
 Phalcon is an open source web framework delivered as a C extension for the PHP language providing high performance and lower resource consumption.
 
-Get Started
------------
+A big thank you to [our Backers](https://github.com/phalcon/cphalcon/blob/master/BACKERS.md); you rock!
 
-Phalcon is written in [Zephir/C](https://zephir-lang.com/) with platform independence in mind. As a result, Phalcon is available on Microsoft Windows, GNU/Linux, FreeBSD and MacOS. You can either download a binary package for the system of your choice or build it from source.
+## Getting Started
 
-### Windows
+Phalcon is written in [Zephir/C](https://zephir-lang.com/) with platform independence in mind.
+As a result, Phalcon is available on Microsoft Windows, GNU/Linux, FreeBSD and MacOS.
+You can either download a binary package for the system of your choice or build it from source.
 
-To install Phalcon on Windows:
+**NOTE:** Phalcon requires the [PSR PHP extension](https://github.com/jbboehr/php-psr) to be installed and enabled.
 
-1. Download [Phalcon for Windows](https://phalconphp.com/en/download/windows)
-2. Extract the DLL file and copy it to your PHP extensions directory
-3. Edit your **php.ini** file and add this line:
+## Installation
 
-   ```ini
-   extension=php_phalcon.dll
-   ```
-4. Finally, restart your web server
+For detailed installation instructions you can check our [installation](https://docs.phalcon.io/4.0/en/installation) page in the docs.
 
-**Hint:** To ensure that your Phalcon installation was successful, debug with
-```php
-<?php phpinfo(); ?>
-```
-and search for a section mentioning the Phalcon extension.
+## Generating API Documentation
 
-### Linux/Unix/Mac
+Generating new documentation files for docs repository can be done using the script in tests/_ci/generate-api-docs.php.
+Steps:
+- Clone the phalcon repo
+- Checkout the tag you would like to generate docs for.
+- Run `php tests/_ci/generate-api-docs.php`
+- The files *.md files in nikos/api/ will contain the documentation
+- For publishing to the Phalcon website this [repo](https://github.com/phalcon/docs/tree/4.0/en/api) is used.
 
-On a Unix-based platform you can easily compile and install the extension from sources.
+## Links
 
-#### Requirements
+### General
+* [Contributing to Phalcon](CONTRIBUTING.md) 
+* [Official Documentation](https://docs.phalcon.io/)
+* [Zephir](https://zephir-lang.com/) - The language Phalcon is written on
+* [Incubator](https://phalcon.link/incubator) - Community driven plugins and classes extending the framework (written in PHP)
 
-Prerequisite packages are:
+### Support
+* [Forum](https://phalcon.link/forum)
+* [Discord](https://phalcon.link/discord)
+* [Stack Overflow](https://phalcon.link/so)
 
-* PHP 5.5.x/5.6.x/7.0.x development resources (PHP 5.3 and 5.4 are no longer supported)
-* GCC compiler (Linux/Solaris/FreeBSD) or Xcode (MacOS)
-* [`re2c`](http://re2c.org) >= 0.13
+### Social Media
+* [Telegram](https://phalcon.link/telegram)
+* [Gab](https://phalcon.link/gab)
+* [Parler](https://phalcon.link/parler)
+* [MeWe](https://phalcon.link/mewe)
+* [Facebook](https://phalcon.link/fb)
+* [Twitter](https://phalcon.link/t)
 
-Ubuntu:
 
-```bash
-sudo apt-get install php5-dev libpcre3-dev gcc make
-```
+## Sponsors
 
-Suse:
+Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/phalcon#sponsor)]
 
-```bash
-sudo zypper install php5-devel gcc make
-```
+<a href="https://opencollective.com/phalcon/#contributors">
+<img src="https://opencollective.com/phalcon/tiers/sponsors.svg?avatarHeight=48&width=800">
+</a>
 
-CentOS/Fedora/RHEL
+## Backers
 
-```bash
-sudo yum install php-devel pcre-devel gcc make
-```
+Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/phalcon#backer)]
 
-General Compilation
--------------------
+<a href="https://opencollective.com/phalcon/#contributors">
+<img src="https://opencollective.com/phalcon/tiers/backers.svg?avatarHeight=48&width=800&height=200">
+</a>
 
-Follow these instructions to generate a binary extension for your platform:
+## License
 
-```bash
-git clone git://github.com/phalcon/cphalcon.git
-cd cphalcon/build
-sudo ./install
-```
+Phalcon is open source software licensed under the BSD 3-Clause License.
 
-Add the extension to your **php.ini**:
+Copyright © 2011-present, Phalcon Team.
 
-```ini
-extension=phalcon.so
-```
-
-Finally, **restart the web server**.
-
-Advanced compilation
---------------------
-If you have specific php versions running
-
-```bash
-git clone https://github.com/phalcon/cphalcon
-# or cd cphalcon/build/php5/32bits
-cd cphalcon/build/php5/64bits
-
-# NOTE: for PHP 7 you have to use 
-# cd cphalcon/build/php7/32bits
-# or
-# cd cphalcon/build/php7/64bits
-
-make clean
-
-# Example: /opt/php-5.6.15
-export CUSTOM_PHP_INSTALLATION_PATH=/your/php/installation/path
-
-# Example: /opt/php-5.6.15/bin/phpize --clean
-$CUSTOM_PHP_INSTALLATION_PATH/bin/phpize --clean
-
-# Example: /opt/php-5.6.15/bin/phpize
-$CUSTOM_PHP_INSTALLATION_PATH/bin/phpize
-
-# Example: ./configure --with-php-config=/opt/php-5.6.15/bin/php-config
-./configure --with-php-config=$CUSTOM_PHP_INSTALLATION_PATH/bin/php-config
-
-make && sudo make install
-```
-
-Edit your **php.ini** (for the specific version) and add this line:
-
-```ini
-extension=phalcon.so
-```
-
-Save the file and **Restart the web server**.
-
-Contributing
-------------
-Tests are located in `tests/` and use Codeception.
-Test classes should follow the [PSR-2 coding style guide](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md).
-
-Vagrant
--------
-https://github.com/phalcon/vagrant
-
-OSX MAMP ready extensions
--------------------------
-
-https://github.com/majksner/php-phalcon-mamp
-
-Gentoo
-------
-
-https://github.com/smoke/phalcon-gentoo-overlay
-
-External Links
---------------
-
-* [Documentation](https://docs.phalconphp.com/)
-* [Support](https://forum.phalconphp.com)
-* [Blog](https://blog.phalconphp.com)
-* [Zephir](https://zephir-lang.com/)
-* [Twitter](https://twitter.com/phalconphp)
-
-Meet the Incubator
-------------------
-Our community is developing amazing extra features for Phalcon every day via [Incubator](https://github.com/phalcon/incubator).
-There are resources to enhance your experience with the framework and that enlarge the main features.
-
-Just give it a try and help us improve Phalcon even more!
-
-License
--------
-Phalcon is open source software licensed under the New BSD License. See the docs/LICENSE.txt file for more
+See the [LICENSE.txt](https://github.com/phalcon/cphalcon/blob/master/LICENSE.txt) file for more. Additional licenses of packages that Phalcon uses, is inspired by or has adapted is located in the [3rdparty/licenses][https://github.com/phalcon/cphalcon/blob/master/3rdparty/licenses] directory.
